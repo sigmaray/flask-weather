@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Home — Weather Archive{% endblock %}
+
+{% block content %}
+<h1>Weather Archive</h1>
+<p class="lead">Manage cities and view weather history.</p>
+<div class="list-group mt-4">
+    <a href="{{ url_for('cities.list_cities') }}" class="list-group-item list-group-item-action">
+        Cities — add locations and view weather history
+    </a>
+    <a href="{{ url_for('settings.settings_page') }}" class="list-group-item list-group-item-action">
+        Settings — configure default check interval
+    </a>
+    <a href="/admin/" class="list-group-item list-group-item-action">
+        Admin panel — manage data
+    </a>
+</div>
+{% endblock %}

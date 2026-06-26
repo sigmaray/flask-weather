@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Cities — Weather Archive{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0">Cities</h1>
+    <a href="{{ url_for('cities.add_city') }}" class="btn btn-primary">Add city</a>
+</div>
+
+<p class="text-muted">Default check interval: {{ default_interval }} min</p>
+
+{% if cities %}
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Coordinates</th>
+            <th>Check interval</th>
+            <th>Last checked</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for city in cities %}
+        <tr>
+            <td>{{ city.name }}</td>
+            <td>{{ "%.4f"|format(city.latitude) }}, {{ "%.4f"|format(city.longitude) }}</td>
+            <td>
+                {% if city.check_interval_minutes %}
+                {{ city.check_interval_minutes }} min (custom)
+                {% else %}
+                {{ default_interval }} min (default)
+                {% endif %}
+            </td>
+            <td>{{ city.last_checked_at.strftime('%Y-%m-%d %H:%M') if city.last_checked_at else '—' }}</td>
+            <td>
+                <a href="{{ url_for('cities.city_detail', city_id=city.id) }}" class="btn btn-sm btn-outline-primary">View</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p class="text-muted">No cities yet. <a href="{{ url_for('cities.add_city') }}">Add one</a>.</p>
+{% endif %}
+{% endblock %}

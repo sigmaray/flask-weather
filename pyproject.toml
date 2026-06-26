@@ -1,0 +1,68 @@
+[project]
+name = "flask-weather"
+version = "0.1.0"
+description = "Weather archive for cities with Flask admin panel"
+requires-python = ">=3.12"
+dependencies = [
+    "flask>=3.0",
+    "flask-admin>=1.6",
+    "flask-login>=0.6",
+    "flask-sqlalchemy>=3.1",
+    "flask-migrate>=4.0",
+    "psycopg2-binary>=2.9",
+    "alembic>=1.13",
+    "apscheduler>=3.10",
+    "requests>=2.31",
+    "werkzeug>=3.0",
+    "gunicorn>=22.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "ruff>=0.6",
+    "mypy>=1.11",
+    "types-requests>=2.31",
+]
+
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+filterwarnings = ["ignore::DeprecationWarning"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "UP", "B"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+plugins = []
+disable_error_code = ["untyped-decorator"]
+
+[tool.ruff.lint.per-file-ignores]
+"migrations/**" = ["E501", "I001"]
+
+[[tool.mypy.overrides]]
+module = [
+    "flask_admin.*",
+    "apscheduler.*",
+    "flask_login.*",
+    "flask_login",
+    "flask_migrate.*",
+    "flask_migrate",
+]
+ignore_missing_imports = true

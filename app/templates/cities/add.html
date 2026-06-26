@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Add city — Weather Archive{% endblock %}
+
+{% block content %}
+<h1>Add city</h1>
+<form method="post" class="mt-4" style="max-width: 500px;">
+    <div class="form-group">
+        <label for="name">Name</label>
+        <input type="text" class="form-control" id="name" name="name" required>
+    </div>
+    <div class="form-group">
+        <label for="latitude">Latitude</label>
+        <input type="text" class="form-control" id="latitude" name="latitude" required placeholder="55.7558">
+    </div>
+    <div class="form-group">
+        <label for="longitude">Longitude</label>
+        <input type="text" class="form-control" id="longitude" name="longitude" required placeholder="37.6173">
+    </div>
+    <div class="form-group">
+        <label for="check_interval_minutes">Check interval (minutes, optional)</label>
+        <input type="number" class="form-control" id="check_interval_minutes"
+               name="check_interval_minutes" min="1"
+               placeholder="Leave empty to use default ({{ default_interval }} min)">
+    </div>
+    <button type="submit" class="btn btn-primary">Add</button>
+    <a href="{{ url_for('cities.list_cities') }}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}
