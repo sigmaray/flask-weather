@@ -5,25 +5,79 @@
 {% block content %}
 <h1>Add city</h1>
 <form method="post" class="mt-4" style="max-width: 500px;">
-    <div class="form-group">
-        <label for="name">Name</label>
-        <input type="text" class="form-control" id="name" name="name" required>
+    <fieldset class="form-group">
+        <legend class="col-form-label">Location</legend>
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="location_mode" id="mode_country_city"
+                   value="country_city" {% if location_mode == "country_city" %}checked{% endif %}>
+            <label class="form-check-label" for="mode_country_city">Country / City</label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="location_mode" id="mode_coordinates"
+                   value="coordinates" {% if location_mode == "coordinates" %}checked{% endif %}>
+            <label class="form-check-label" for="mode_coordinates">Latitude / Longitude</label>
+        </div>
+    </fieldset>
+
+    <div id="coordinates-fields">
+        <div class="form-group">
+            <label for="name">Name</label>
+            <input type="text" class="form-control" id="name" name="name"
+                   value="{{ form.name }}" placeholder="Moscow">
+        </div>
+        <div class="form-group">
+            <label for="latitude">Latitude</label>
+            <input type="text" class="form-control" id="latitude" name="latitude"
+                   value="{{ form.latitude }}" placeholder="55.7558">
+        </div>
+        <div class="form-group">
+            <label for="longitude">Longitude</label>
+            <input type="text" class="form-control" id="longitude" name="longitude"
+                   value="{{ form.longitude }}" placeholder="37.6173">
+        </div>
     </div>
-    <div class="form-group">
-        <label for="latitude">Latitude</label>
-        <input type="text" class="form-control" id="latitude" name="latitude" required placeholder="55.7558">
+
+    <div id="country-city-fields" style="display: none;">
+        <div class="form-group">
+            <label for="country">Country</label>
+            <input type="text" class="form-control" id="country" name="country"
+                   value="{{ form.country }}" placeholder="Germany">
+        </div>
+        <div class="form-group">
+            <label for="city">City</label>
+            <input type="text" class="form-control" id="city" name="city"
+                   value="{{ form.city }}" placeholder="Berlin">
+        </div>
     </div>
-    <div class="form-group">
-        <label for="longitude">Longitude</label>
-        <input type="text" class="form-control" id="longitude" name="longitude" required placeholder="37.6173">
-    </div>
+
     <div class="form-group">
         <label for="check_interval_minutes">Check interval (minutes, optional)</label>
         <input type="number" class="form-control" id="check_interval_minutes"
-               name="check_interval_minutes" min="1"
+               name="check_interval_minutes" min="1" value="{{ form.check_interval_minutes }}"
                placeholder="Leave empty to use default ({{ default_interval }} min)">
     </div>
     <button type="submit" class="btn btn-primary">Add</button>
     <a href="{{ url_for('cities.list_cities') }}" class="btn btn-secondary">Cancel</a>
 </form>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function () {
+    const modeCoordinates = document.getElementById("mode_coordinates");
+    const modeCountryCity = document.getElementById("mode_country_city");
+    const coordinatesFields = document.getElementById("coordinates-fields");
+    const countryCityFields = document.getElementById("country-city-fields");
+
+    function updateLocationFields() {
+        const useCountryCity = modeCountryCity.checked;
+        coordinatesFields.style.display = useCountryCity ? "none" : "block";
+        countryCityFields.style.display = useCountryCity ? "block" : "none";
+    }
+
+    modeCoordinates.addEventListener("change", updateLocationFields);
+    modeCountryCity.addEventListener("change", updateLocationFields);
+    updateLocationFields();
+})();
+</script>
 {% endblock %}

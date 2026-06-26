@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from datetime import datetime
+from unittest.mock import patch
 
+import pytest
 from flask.testing import FlaskClient
 
 from app.extensions import db
@@ -118,6 +120,7 @@ def test_add_city(auth_client: FlaskClient) -> None:
     response = auth_client.post(
         "/cities/add",
         data={
+            "location_mode": "coordinates",
             "name": "Moscow",
             "latitude": "55.7558",
             "longitude": "37.6173",
@@ -130,6 +133,27 @@ def test_add_city(auth_client: FlaskClient) -> None:
         city = City.query.filter_by(name="Moscow").first()
         assert city is not None
         assert city.check_interval_minutes == 30
+
+
+def test_add_city_by_country(auth_client: FlaskClient) -> None:
+    geocode_result = ("Berlin, Germany", 52.52437, 13.41053)
+    with patch("app.blueprints.cities.geocode_city", return_value=geocode_result):
+        response = auth_client.post(
+            "/cities/add",
+            data={
+                "location_mode": "country_city",
+                "country": "Germany",
+                "city": "Berlin",
+            },
+            follow_redirects=True,
+        )
+
+    assert b"Berlin, Germany" in response.data
+    with auth_client.application.app_context():
+        city = City.query.filter_by(name="Berlin, Germany").first()
+        assert city is not None
+        assert city.latitude == pytest.approx(52.52437)
+        assert city.longitude == pytest.approx(13.41053)
 
 
 def test_settings_update(auth_client: FlaskClient) -> None:

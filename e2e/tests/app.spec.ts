@@ -19,6 +19,7 @@ test.describe("Weather Archive", () => {
     await expect(page.getByRole("heading", { name: "Cities" })).toBeVisible();
 
     await page.getByRole("link", { name: "Add city" }).click();
+    await page.getByLabel("Latitude / Longitude").check();
     await page.getByLabel("Name").fill("Test City");
     await page.getByLabel("Latitude").fill("52.52");
     await page.getByLabel("Longitude").fill("13.405");
