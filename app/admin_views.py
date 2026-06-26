@@ -23,6 +23,7 @@ def _city_weather_context(city: City) -> dict[str, Any]:
         "temperatures": [r.temperature_c for r in chronological],
         "humidity": [r.humidity_percent for r in chronological],
         "wind": [r.wind_speed_ms for r in chronological],
+        "snow_depth": [r.snow_depth_m for r in chronological],
     }
     return {
         "city": city,
@@ -184,6 +185,7 @@ class WeatherRecordAdmin(SecureModelView):
         "wind_speed_ms",
         "weather_code",
         "precipitation_mm",
+        "snow_depth_m",
     ]
     column_filters = ["city_id", "recorded_at"]
     column_sortable_list = ["id", "recorded_at", "temperature_c"]
@@ -198,6 +200,7 @@ class WeatherRecordAdmin(SecureModelView):
         "wind_speed_ms": "Wind speed (m/s)",
         "weather_code": "Weather code",
         "precipitation_mm": "Precipitation (mm)",
+        "snow_depth_m": "Snow depth (m)",
     }
 
     can_create = False

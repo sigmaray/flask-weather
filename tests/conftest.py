@@ -70,6 +70,7 @@ def mock_weather_api() -> Generator[None, None, None]:
             "wind_speed_10m": 3.2,
             "weather_code": 1,
             "precipitation": 0.0,
+            "snow_depth": 0.12,
         }
     }
     with patch("app.services.weather.requests.get") as mock_get:

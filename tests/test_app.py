@@ -124,6 +124,7 @@ def test_city_detail_with_records(auth_client: FlaskClient) -> None:
             temperature_c=10.0,
             humidity_percent=50.0,
             wind_speed_ms=2.0,
+            snow_depth_m=0.05,
         )
         db.session.add(record)
         db.session.commit()
@@ -138,6 +139,7 @@ def test_city_detail_with_records(auth_client: FlaskClient) -> None:
     assert b"Berlin" in response.data
     assert b"10.0" in response.data
     assert b"temperatureChart" in response.data
+    assert b"snowChart" in response.data
 
 
 def test_fetch_weather_tools(auth_client: FlaskClient, mock_weather_api: None) -> None:
@@ -153,3 +155,4 @@ def test_fetch_weather_tools(auth_client: FlaskClient, mock_weather_api: None) -
         records = WeatherRecord.query.filter_by(city_id=city_id).all()
         assert len(records) == 1
         assert records[0].temperature_c == 15.5
+        assert records[0].snow_depth_m == 0.12

@@ -38,6 +38,9 @@
 <div class="chart-container">
     <canvas id="windChart"></canvas>
 </div>
+<div class="chart-container">
+    <canvas id="snowChart"></canvas>
+</div>
 
 <h2 class="mt-4">History</h2>
 <table class="table table-sm table-striped">
@@ -48,6 +51,7 @@
             <th>Humidity %</th>
             <th>Wind m/s</th>
             <th>Precip mm</th>
+            <th>Snow cm</th>
             <th>Code</th>
         </tr>
     </thead>
@@ -59,6 +63,7 @@
             <td>{{ "%.0f"|format(record.humidity_percent) if record.humidity_percent is not none else '—' }}</td>
             <td>{{ "%.1f"|format(record.wind_speed_ms) if record.wind_speed_ms is not none else '—' }}</td>
             <td>{{ "%.1f"|format(record.precipitation_mm) if record.precipitation_mm is not none else '—' }}</td>
+            <td>{{ "%.0f"|format(record.snow_depth_m * 100) if record.snow_depth_m is not none else '—' }}</td>
             <td>{{ record.weather_code if record.weather_code is not none else '—' }}</td>
         </tr>
         {% endfor %}
@@ -103,6 +108,7 @@ function makeChart(canvasId, label, data, color) {
 makeChart('temperatureChart', 'Temperature °C', chartData.temperatures, '#e74c3c');
 makeChart('humidityChart', 'Humidity %', chartData.humidity, '#3498db');
 makeChart('windChart', 'Wind m/s', chartData.wind, '#2ecc71');
+makeChart('snowChart', 'Snow depth cm', chartData.snow_depth.map(v => v === null ? null : v * 100), '#9b59b6');
 </script>
 {% endif %}
 {% endblock %}

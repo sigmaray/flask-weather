@@ -83,6 +83,7 @@ class WeatherRecord(db.Model):  # type: ignore[name-defined,misc]
     wind_speed_ms = db.Column(db.Float, nullable=True)
     weather_code = db.Column(db.Integer, nullable=True)
     precipitation_mm = db.Column(db.Float, nullable=True)
+    snow_depth_m = db.Column(db.Float, nullable=True)
 
     city = db.relationship("City", back_populates="weather_records")
 

@@ -19,7 +19,7 @@ def fetch_weather_for_city(city: City) -> WeatherRecord:
     params: dict[str, str | float] = {
         "latitude": city.latitude,
         "longitude": city.longitude,
-        "current": "temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code,precipitation",
+        "current": "temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code,precipitation,snow_depth",
         "timezone": "UTC",
     }
     try:
@@ -42,6 +42,7 @@ def fetch_weather_for_city(city: City) -> WeatherRecord:
         wind_speed_ms=_optional_float(current.get("wind_speed_10m")),
         weather_code=_optional_int(current.get("weather_code")),
         precipitation_mm=_optional_float(current.get("precipitation")),
+        snow_depth_m=_optional_float(current.get("snow_depth")),
     )
     city.last_checked_at = recorded_at
     db.session.add(record)
