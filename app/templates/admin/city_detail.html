@@ -1,9 +1,16 @@
-{% extends "base.html" %}
+{% extends 'admin/model/details.html' %}
 
-{% block title %}{{ city.name }} — Weather Archive{% endblock %}
+{% block head %}
+{{ super() }}
+<style>
+    .chart-container { position: relative; height: 300px; margin-bottom: 2rem; }
+</style>
+{% endblock %}
 
-{% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
+{% block details_search %}{% endblock %}
+
+{% block details_table %}
+<div class="d-flex justify-content-between align-items-center mb-3 mt-3">
     <div>
         <h1 class="mb-1">{{ city.name }}</h1>
         <p class="text-muted mb-0">
@@ -16,7 +23,7 @@
             {% endif %}
         </p>
     </div>
-    <form method="post" action="{{ url_for('cities.fetch_now', city_id=city.id) }}">
+    <form method="post" action="{{ url_for('.fetch_weather_now', id=city.id) }}">
         <button type="submit" class="btn btn-outline-primary">Fetch now</button>
     </form>
 </div>
@@ -61,10 +68,10 @@
 <p class="text-muted">No weather records yet. Use "Fetch now" to collect data.</p>
 {% endif %}
 
-<a href="{{ url_for('cities.list_cities') }}" class="btn btn-link pl-0">← Back to cities</a>
+<a href="{{ return_url }}" class="btn btn-link pl-0">← Back to cities</a>
 {% endblock %}
 
-{% block extra_scripts %}
+{% block tail %}
 {% if records %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>

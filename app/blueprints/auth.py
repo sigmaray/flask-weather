@@ -12,7 +12,7 @@ auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login() -> ResponseReturnValue:
     if current_user.is_authenticated:
-        return redirect(url_for("main.index"))
+        return redirect(url_for("admin_cities.index_view"))
 
     if request.method == "POST":
         username = request.form.get("username", "").strip()
@@ -23,7 +23,7 @@ def login() -> ResponseReturnValue:
         else:
             login_user(user)
             next_page = request.args.get("next")
-            return redirect(next_page or url_for("main.index"))
+            return redirect(next_page or url_for("admin_cities.index_view"))
     return render_template("auth/login.html")
 
 

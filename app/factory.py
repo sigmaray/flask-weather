@@ -3,7 +3,8 @@ from __future__ import annotations
 import os
 from typing import Any
 
-from flask import Flask
+from flask import Flask, redirect, url_for
+from flask_login import current_user
 
 from app.extensions import db, login_manager, migrate
 from app.models import User
@@ -33,18 +34,18 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
 
     from app.admin import init_admin
     from app.blueprints.auth import auth_bp
-    from app.blueprints.cities import cities_bp
-    from app.blueprints.main import main_bp
-    from app.blueprints.settings import settings_bp
     from app.cli import register_cli
     from app.scheduler import init_scheduler
 
     app.register_blueprint(auth_bp)
-    app.register_blueprint(main_bp)
-    app.register_blueprint(cities_bp)
-    app.register_blueprint(settings_bp)
     init_admin(app)
     register_cli(app)
+
+    @app.route("/")
+    def index() -> Any:
+        if current_user.is_authenticated:
+            return redirect(url_for("admin_cities.index_view"))
+        return redirect(url_for("auth.login"))
 
     if app.config["SCHEDULER_ENABLED"]:
         init_scheduler(app)

@@ -5,9 +5,7 @@ from flask import Flask
 
 from app.extensions import db
 from app.models import User
-
-SEED_USERNAME = "admin"
-SEED_PASSWORD = "admin"
+from app.services.user_service import clear_users_table, seed_admin_user
 
 
 def register_cli(app: Flask) -> None:
@@ -51,24 +49,14 @@ def register_cli(app: Flask) -> None:
             click.echo("Aborted.")
             raise SystemExit(1)
 
-        User.query.delete()
-        db.session.commit()
-        click.echo(f"Deleted {count} user(s).")
+        _, message = clear_users_table()
+        click.echo(message)
 
     @app.cli.command("users-seed")
     def users_seed() -> None:
         """Create a test user for local development (admin / admin)."""
-        if User.query.count() > 0:
-            click.echo(f"User {SEED_USERNAME!r} already exists.")
-            return
-
-        user = User(username=SEED_USERNAME)
-        user.set_password(SEED_PASSWORD)
-        db.session.add(user)
-        db.session.commit()
-        click.echo(
-            f"Test user created: login={SEED_USERNAME!r}, password={SEED_PASSWORD!r}"
-        )
+        _, message = seed_admin_user()
+        click.echo(message)
 
     @app.cli.command("fetch-weather")
     def fetch_weather() -> None:

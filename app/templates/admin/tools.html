@@ -1,0 +1,61 @@
+{% extends 'admin/master.html' %}
+
+{% block body %}
+<h1 class="mb-4">Tools</h1>
+
+<div class="row">
+    <div class="col-md-8 col-lg-6">
+        <div class="card mb-4">
+            <div class="card-header">Weather fetch</div>
+            <div class="card-body">
+                <p class="card-text">
+                    Fetch current weather for all cities that are due for an update.
+                </p>
+                <p class="text-muted mb-4">
+                    Cities in database: <strong>{{ cities_count }}</strong>.
+                    Weather records: <strong>{{ weather_records_count }}</strong>.
+                </p>
+
+                <form method="post" action="{{ url_for('.fetch_weather') }}" class="d-inline">
+                    <button type="submit" class="btn btn-primary">
+                        Fetch due cities
+                    </button>
+                </form>
+            </div>
+            <div class="card-footer text-muted small">
+                Equivalent to the CLI command <code>flask fetch-weather</code>.
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">User seeding</div>
+            <div class="card-body">
+                <p class="card-text">
+                    Create the default test user (<code>admin</code> / <code>admin</code>)
+                    when the database has no users.
+                </p>
+                <p class="text-muted mb-4">
+                    Current users: <strong>{{ users_count }}</strong>.
+                </p>
+
+                <form method="post" action="{{ url_for('.seed_users') }}" class="d-inline">
+                    <button type="submit" class="btn btn-primary mr-2">
+                        Seed test user
+                    </button>
+                </form>
+
+                <form method="post" action="{{ url_for('.clear_users') }}" class="d-inline"
+                      onsubmit="return confirm('Delete all users from the database?');">
+                    <button type="submit" class="btn btn-danger">
+                        Clear users
+                    </button>
+                </form>
+            </div>
+            <div class="card-footer text-muted small">
+                Equivalent to the CLI commands <code>flask users-seed</code>
+                and <code>flask users-clear -y</code>.
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
