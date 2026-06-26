@@ -48,8 +48,8 @@ def test_no_register_route(client: FlaskClient) -> None:
 
 def test_create_user_cli(app, runner) -> None:
     result = runner.invoke(
-        args=["create-user", "cliuser"],
-        input="secretpass\nsecretpass\n",
+        args=["create-user"],
+        input="cliuser\nsecretpass\nsecretpass\n",
     )
     assert result.exit_code == 0
     with app.app_context():
@@ -60,10 +60,37 @@ def test_create_user_cli(app, runner) -> None:
 
 def test_create_user_password_mismatch(app, runner) -> None:
     result = runner.invoke(
-        args=["create-user", "cliuser2"],
-        input="secretpass\notherpass\n",
+        args=["create-user"],
+        input="cliuser2\nsecretpass\notherpass\n",
     )
     assert result.exit_code == 1
+
+
+def test_users_clear_cli(app, runner, user: User) -> None:
+    with app.app_context():
+        assert User.query.count() == 1
+
+    result = runner.invoke(args=["users-clear", "-y"])
+    assert result.exit_code == 0
+    assert "Deleted 1 user(s)." in result.output
+
+    with app.app_context():
+        assert User.query.count() == 0
+
+
+def test_users_clear_empty(app, runner) -> None:
+    result = runner.invoke(args=["users-clear", "-y"])
+    assert result.exit_code == 0
+    assert "No users to delete." in result.output
+
+
+def test_users_clear_abort(app, runner, user: User) -> None:
+    result = runner.invoke(args=["users-clear"], input="n\n")
+    assert result.exit_code == 1
+    assert "Aborted." in result.output
+
+    with app.app_context():
+        assert User.query.count() == 1
 
 
 def test_add_city(auth_client: FlaskClient) -> None:

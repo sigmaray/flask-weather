@@ -31,7 +31,7 @@ docker compose up -d db
 export DATABASE_URL=postgresql://weather:weather@localhost:5432/weather
 export FLASK_APP=wsgi:app
 flask db upgrade
-flask create-user admin
+flask create-user
 docker compose up --build
 ```
 
@@ -56,6 +56,6 @@ BASE_URL=http://localhost:5000 E2E_USERNAME=admin E2E_PASSWORD=... npm test
 ## CLI
 
 ```bash
-flask create-user <username>   # prompts for password + confirmation
+flask create-user              # prompts for login, password, confirmation
 flask fetch-weather            # fetch for all due cities
 ```

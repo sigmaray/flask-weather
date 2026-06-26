@@ -11,12 +11,11 @@ from app.models import User
 
 def register_cli(app: Flask) -> None:
     @app.cli.command("create-user")
-    @click.argument("username")
-    def create_user(username: str) -> None:
+    def create_user() -> None:
         """Create a user (login only via CLI, not UI registration)."""
-        username = username.strip()
+        username = click.prompt("Login", type=str).strip()
         if not username:
-            click.echo("Username cannot be empty.")
+            click.echo("Login cannot be empty.")
             raise SystemExit(1)
 
         if User.query.filter_by(username=username).first():
@@ -37,6 +36,23 @@ def register_cli(app: Flask) -> None:
         db.session.add(user)
         db.session.commit()
         click.echo(f"User {username!r} created.")
+
+    @app.cli.command("users-clear")
+    @click.option("--yes", "-y", is_flag=True, help="Skip confirmation.")
+    def users_clear(yes: bool) -> None:
+        """Delete all users."""
+        count = User.query.count()
+        if count == 0:
+            click.echo("No users to delete.")
+            return
+
+        if not yes and not click.confirm(f"Delete all {count} user(s)?"):
+            click.echo("Aborted.")
+            raise SystemExit(1)
+
+        User.query.delete()
+        db.session.commit()
+        click.echo(f"Deleted {count} user(s).")
 
     @app.cli.command("fetch-weather")
     def fetch_weather() -> None:
