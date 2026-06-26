@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-import getpass
-
 import click
 from flask import Flask
 
 from app.extensions import db
 from app.models import User
+
+SEED_USERNAME = "admin"
+SEED_PASSWORD = "admin"
 
 
 def register_cli(app: Flask) -> None:
@@ -22,8 +23,8 @@ def register_cli(app: Flask) -> None:
             click.echo(f"User {username!r} already exists.")
             raise SystemExit(1)
 
-        password = getpass.getpass("Password: ")
-        confirm = getpass.getpass("Confirm password: ")
+        password = click.prompt("Password", hide_input=True)
+        confirm = click.prompt("Confirm password", hide_input=True)
         if password != confirm:
             click.echo("Passwords do not match.")
             raise SystemExit(1)
@@ -53,6 +54,21 @@ def register_cli(app: Flask) -> None:
         User.query.delete()
         db.session.commit()
         click.echo(f"Deleted {count} user(s).")
+
+    @app.cli.command("users-seed")
+    def users_seed() -> None:
+        """Create a test user for local development (admin / admin)."""
+        if User.query.count() > 0:
+            click.echo(f"User {SEED_USERNAME!r} already exists.")
+            return
+
+        user = User(username=SEED_USERNAME)
+        user.set_password(SEED_PASSWORD)
+        db.session.add(user)
+        db.session.commit()
+        click.echo(
+            f"Test user created: login={SEED_USERNAME!r}, password={SEED_PASSWORD!r}"
+        )
 
     @app.cli.command("fetch-weather")
     def fetch_weather() -> None:

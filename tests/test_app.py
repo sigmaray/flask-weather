@@ -93,6 +93,27 @@ def test_users_clear_abort(app, runner, user: User) -> None:
         assert User.query.count() == 1
 
 
+def test_users_seed_cli(app, runner) -> None:
+    result = runner.invoke(args=["users-seed"])
+    assert result.exit_code == 0
+    assert "Test user created" in result.output
+    assert "admin" in result.output
+
+    with app.app_context():
+        user = User.query.filter_by(username="admin").first()
+        assert user is not None
+        assert user.check_password("admin")
+
+
+def test_users_seed_idempotent(app, runner, user: User) -> None:
+    result = runner.invoke(args=["users-seed"])
+    assert result.exit_code == 0
+    assert "already exists" in result.output
+
+    with app.app_context():
+        assert User.query.count() == 1
+
+
 def test_add_city(auth_client: FlaskClient) -> None:
     response = auth_client.post(
         "/cities/add",
