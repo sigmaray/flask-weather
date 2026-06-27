@@ -52,9 +52,7 @@ def reverse_geocode(latitude: float, longitude: float) -> str:
     data: dict[str, Any] = response.json()
     display_name = data.get("display_name")
     if not display_name:
-        raise GeocodingError(
-            f"Could not resolve coordinates ({latitude}, {longitude})."
-        )
+        raise GeocodingError(f"Could not resolve coordinates ({latitude}, {longitude}).")
     return str(display_name)
 
 
@@ -82,9 +80,7 @@ def _search(name: str) -> list[dict[str, Any]]:
     return list(results)
 
 
-def _pick_result(
-    results: list[dict[str, Any]], city: str, country: str
-) -> dict[str, Any] | None:
+def _pick_result(results: list[dict[str, Any]], city: str, country: str) -> dict[str, Any] | None:
     if not results:
         return None
 

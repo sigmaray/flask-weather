@@ -204,9 +204,7 @@ class CityAdmin(SecureModelView):
             try:
                 model.geocoded_name = reverse_geocode(model.latitude, model.longitude)
             except GeocodingError as exc:
-                raise validators.ValidationError(
-                    f"Failed to geocode coordinates: {exc}"
-                ) from exc
+                raise validators.ValidationError(f"Failed to geocode coordinates: {exc}") from exc
 
     @expose("/details/", methods=("GET",))
     def details_view(self) -> Any:
@@ -386,10 +384,7 @@ class WeatherMapAdmin(SecureBaseView):
     @expose("/")
     def index(self) -> Any:
         cities_with_weather = (
-            City.query.join(City.weather_records)
-            .distinct()
-            .order_by(City.id.asc())
-            .all()
+            City.query.join(City.weather_records).distinct().order_by(City.id.asc()).all()
         )
 
         map_points: list[dict[str, Any]] = []
@@ -427,3 +422,66 @@ class WeatherMapAdmin(SecureBaseView):
             records_without_coordinates=records_without_coordinates,
             total_records=len(cities_with_weather),
         )
+
+
+class SchedulerAdmin(SecureBaseView):
+    @expose("/")
+    def index(self) -> Any:
+        from app.scheduler import get_scheduler
+
+        scheduler = get_scheduler()
+        jobs = scheduler.get_jobs() if scheduler else []
+
+        return self.render(
+            "admin/scheduler.html",
+            jobs=jobs,
+            scheduler_enabled=scheduler is not None,
+        )
+
+    @expose("/pause/<job_id>", methods=["POST"])
+    def pause_job(self, job_id: str) -> Response:
+        from app.scheduler import get_scheduler
+
+        scheduler = get_scheduler()
+        if scheduler:
+            try:
+                scheduler.pause_job(job_id)
+                flash(f"Job {job_id} paused successfully.", "success")
+            except Exception as e:
+                flash(f"Failed to pause job {job_id}: {e}", "danger")
+        else:
+            flash("Scheduler is not enabled.", "danger")
+
+        return redirect(url_for(".index"))
+
+    @expose("/resume/<job_id>", methods=["POST"])
+    def resume_job(self, job_id: str) -> Response:
+        from app.scheduler import get_scheduler
+
+        scheduler = get_scheduler()
+        if scheduler:
+            try:
+                scheduler.resume_job(job_id)
+                flash(f"Job {job_id} resumed successfully.", "success")
+            except Exception as e:
+                flash(f"Failed to resume job {job_id}: {e}", "danger")
+        else:
+            flash("Scheduler is not enabled.", "danger")
+
+        return redirect(url_for(".index"))
+
+    @expose("/remove/<job_id>", methods=["POST"])
+    def remove_job(self, job_id: str) -> Response:
+        from app.scheduler import get_scheduler
+
+        scheduler = get_scheduler()
+        if scheduler:
+            try:
+                scheduler.remove_job(job_id)
+                flash(f"Job {job_id} removed successfully.", "success")
+            except Exception as e:
+                flash(f"Failed to remove job {job_id}: {e}", "danger")
+        else:
+            flash("Scheduler is not enabled.", "danger")
+
+        return redirect(url_for(".index"))

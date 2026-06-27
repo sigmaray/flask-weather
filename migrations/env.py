@@ -10,6 +10,7 @@ config = context.config
 fileConfig(config.config_file_name)
 logger = logging.getLogger("alembic.env")
 
+
 def get_engine():
     return current_app.extensions["migrate"].db.get_engine()
 
@@ -23,6 +24,7 @@ def get_engine_url():
 
 config.set_main_option("sqlalchemy.url", get_engine_url())
 target_db = current_app.extensions["migrate"].db
+
 
 def get_metadata():
     if hasattr(target_db, "metadatas"):

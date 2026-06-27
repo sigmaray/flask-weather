@@ -26,3 +26,7 @@ def init_scheduler(app: Flask) -> None:
     @app.teardown_appcontext
     def shutdown_scheduler(exception: BaseException | None = None) -> None:
         pass
+
+
+def get_scheduler() -> BackgroundScheduler | None:
+    return _scheduler

@@ -49,9 +49,7 @@ def test_geocode_city_not_found() -> None:
 
 def test_reverse_geocode() -> None:
     with patch("app.services.geocoding.requests.get") as mock_get:
-        mock_get.return_value.json.return_value = {
-            "display_name": "Berlin, Germany"
-        }
+        mock_get.return_value.json.return_value = {"display_name": "Berlin, Germany"}
         mock_get.return_value.raise_for_status = lambda: None
 
         name = reverse_geocode(52.52, 13.405)

@@ -59,8 +59,12 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(["city_id"], ["cities.id"]),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index(op.f("ix_weather_records_city_id"), "weather_records", ["city_id"], unique=False)
-    op.create_index(op.f("ix_weather_records_recorded_at"), "weather_records", ["recorded_at"], unique=False)
+    op.create_index(
+        op.f("ix_weather_records_city_id"), "weather_records", ["city_id"], unique=False
+    )
+    op.create_index(
+        op.f("ix_weather_records_recorded_at"), "weather_records", ["recorded_at"], unique=False
+    )
 
 
 def downgrade() -> None:

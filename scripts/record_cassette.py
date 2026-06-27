@@ -13,11 +13,13 @@ def main():
     if os.path.exists("e2e/e2e_cassettes"):
         shutil.rmtree("e2e/e2e_cassettes")
 
-    app = create_app({
-        "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
-        "TESTING": True,
-        "SCHEDULER_ENABLED": False,
-    })
+    app = create_app(
+        {
+            "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
+            "TESTING": True,
+            "SCHEDULER_ENABLED": False,
+        }
+    )
 
     with app.app_context():
         db.create_all()
@@ -42,6 +44,7 @@ def main():
 
         vcr_context.stop()
         print("Cassette recorded successfully.")
+
 
 if __name__ == "__main__":
     main()

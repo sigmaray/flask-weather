@@ -17,17 +17,13 @@ depends_on = None
 
 def upgrade() -> None:
     op.add_column("cities", sa.Column("country", sa.String(length=120), nullable=True))
-    op.add_column(
-        "cities", sa.Column("geocoded_name", sa.String(length=200), nullable=True)
-    )
+    op.add_column("cities", sa.Column("geocoded_name", sa.String(length=200), nullable=True))
     op.alter_column("cities", "name", existing_type=sa.String(length=120), nullable=True)
     op.alter_column("cities", "latitude", existing_type=sa.Float(), nullable=True)
     op.alter_column("cities", "longitude", existing_type=sa.Float(), nullable=True)
 
     conn = op.get_bind()
-    cities = conn.execute(
-        sa.text("SELECT id, name, latitude, longitude FROM cities")
-    ).fetchall()
+    cities = conn.execute(sa.text("SELECT id, name, latitude, longitude FROM cities")).fetchall()
     for city_id, name, latitude, longitude in cities:
         if name and ", " in name:
             city_name, country = name.split(", ", 1)
@@ -51,17 +47,14 @@ def upgrade() -> None:
 def downgrade() -> None:
     conn = op.get_bind()
     cities = conn.execute(
-        sa.text(
-            "SELECT id, name, country, geocoded_name, latitude, longitude FROM cities"
-        )
+        sa.text("SELECT id, name, country, geocoded_name, latitude, longitude FROM cities")
     ).fetchall()
     for city_id, name, country, geocoded_name, latitude, longitude in cities:
         if name and country:
             display_name = f"{name}, {country}"
             conn.execute(
                 sa.text(
-                    "UPDATE cities SET name = :name, latitude = 0, longitude = 0 "
-                    "WHERE id = :id"
+                    "UPDATE cities SET name = :name, latitude = 0, longitude = 0 WHERE id = :id"
                 ),
                 {"name": display_name, "id": city_id},
             )
@@ -80,9 +73,7 @@ def downgrade() -> None:
             )
         elif latitude is not None and longitude is not None:
             conn.execute(
-                sa.text(
-                    "UPDATE cities SET name = :name WHERE id = :id"
-                ),
+                sa.text("UPDATE cities SET name = :name WHERE id = :id"),
                 {"name": f"{latitude:.4f}, {longitude:.4f}", "id": city_id},
             )
 

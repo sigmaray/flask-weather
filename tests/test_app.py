@@ -229,9 +229,7 @@ def test_fetch_weather_tools_by_name_country(
         assert len(records) == 1
 
 
-def test_weather_map_page(
-    auth_client: FlaskClient, mock_geocoding: None
-) -> None:
+def test_weather_map_page(auth_client: FlaskClient, mock_geocoding: None) -> None:
     with auth_client.application.app_context():
         city = City(name="Paris", country="France")
         db.session.add(city)

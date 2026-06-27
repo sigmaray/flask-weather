@@ -30,6 +30,10 @@ test.describe("Admin navigation", () => {
       page.getByRole("columnheader", { name: /Default check interval/ }),
     ).toBeVisible();
 
+    await page.getByRole("link", { name: "Background Tasks", exact: true }).click();
+    await expect(page).toHaveURL(/\/admin\/scheduler/);
+    await expect(page.getByRole("heading", { name: "Background Tasks" })).toBeVisible();
+
     await page.getByRole("link", { name: "Map", exact: true }).click();
     await expect(page).toHaveURL(/\/admin\/weather_map/);
     await expect(page.getByRole("heading", { name: "Weather map" })).toBeVisible();

@@ -7,6 +7,7 @@ from app.admin_auth import SecureAdminIndexView
 from app.admin_views import (
     AppSettingsAdmin,
     CityAdmin,
+    SchedulerAdmin,
     ToolsAdmin,
     UserAdmin,
     WeatherMapAdmin,
@@ -42,4 +43,5 @@ def init_admin(app: Flask) -> None:
             endpoint="app_settings",
         )
     )
+    admin.add_view(SchedulerAdmin(name="Background Tasks", endpoint="scheduler"))
     admin.add_view(WeatherMapAdmin(name="Map", endpoint="weather_map"))

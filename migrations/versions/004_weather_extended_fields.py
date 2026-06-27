@@ -18,13 +18,9 @@ depends_on = None
 def upgrade() -> None:
     op.add_column("weather_records", sa.Column("dew_point_c", sa.Float(), nullable=True))
     op.add_column("weather_records", sa.Column("pressure_mmhg", sa.Float(), nullable=True))
-    op.add_column(
-        "weather_records", sa.Column("apparent_temperature_c", sa.Float(), nullable=True)
-    )
+    op.add_column("weather_records", sa.Column("apparent_temperature_c", sa.Float(), nullable=True))
     op.add_column("weather_records", sa.Column("uv_index", sa.Float(), nullable=True))
-    op.add_column(
-        "weather_records", sa.Column("observed_at_local", sa.DateTime(), nullable=True)
-    )
+    op.add_column("weather_records", sa.Column("observed_at_local", sa.DateTime(), nullable=True))
     op.add_column("weather_records", sa.Column("timezone", sa.String(length=64), nullable=True))
 
 

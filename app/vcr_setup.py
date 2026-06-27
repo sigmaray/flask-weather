@@ -18,9 +18,7 @@ class _VCRContext:
             match_on=["uri", "method"],
             filter_headers=["Authorization"],
         )
-        self.cassette = vcr_e2e.use_cassette(
-            "e2e_weather_mocks.yaml", allow_playback_repeats=True
-        )
+        self.cassette = vcr_e2e.use_cassette("e2e_weather_mocks.yaml", allow_playback_repeats=True)
         self.cassette.__enter__()
 
     def stop(self) -> None:
