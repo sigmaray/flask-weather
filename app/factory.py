@@ -37,6 +37,9 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
     from app.cli import register_cli
     from app.scheduler import init_scheduler
     from app.services.weather_codes import weather_code_label
+    from app.vcr_setup import apply_vcr_if_e2e
+
+    apply_vcr_if_e2e()
 
     app.jinja_env.filters["weather_code_label"] = weather_code_label
 

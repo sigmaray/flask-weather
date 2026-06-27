@@ -84,6 +84,7 @@ jobs:
           DATABASE_URL: postgresql://weather:weather@localhost:5432/weather_e2e
           SECRET_KEY: e2e-secret
           SCHEDULER_ENABLED: "false"
+          USE_VCR: "true"
         run: |
           flask db upgrade
           printf 'e2euser\ne2epass\ne2epass\n' | flask create-user

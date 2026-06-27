@@ -1,0 +1,738 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.34.2
+    method: GET
+    uri: https://geocoding-api.open-meteo.com/v1/search?name=Berlin&count=10&language=en&format=json
+  response:
+    body:
+      string: '{"results":[{"id":2950159,"name":"Berlin","latitude":52.52437,"longitude":13.41053,"elevation":74.0,"feature_code":"PPLC","country_code":"DE","admin1_id":2950157,"admin3_id":6547383,"admin4_id":6547539,"timezone":"Europe/Berlin","population":3426354,"postcodes":["10967","13347"],"country_id":2921044,"country":"Germany","admin1":"State
+        of Berlin","admin3":"Berlin, Stadt","admin4":"Berlin"},{"id":5083330,"name":"Berlin","latitude":44.46867,"longitude":-71.18508,"elevation":311.0,"feature_code":"PPL","country_code":"US","admin1_id":5090174,"admin2_id":5084973,"admin3_id":5083340,"timezone":"America/New_York","population":9367,"postcodes":["03570"],"country_id":6252001,"country":"United
+        States","admin1":"New Hampshire","admin2":"Coos","admin3":"City of Berlin"},{"id":4500771,"name":"Berlin","latitude":39.79123,"longitude":-74.92905,"elevation":50.0,"feature_code":"PPL","country_code":"US","admin1_id":5101760,"admin2_id":4501019,"admin3_id":4500776,"timezone":"America/New_York","population":7590,"postcodes":["08009"],"country_id":6252001,"country":"United
+        States","admin1":"New Jersey","admin2":"Camden","admin3":"Borough of Berlin"},{"id":4349706,"name":"Brunswick","latitude":39.31427,"longitude":-77.62777,"elevation":90.0,"feature_code":"PPL","country_code":"US","admin1_id":4361885,"admin2_id":4355594,"timezone":"America/New_York","population":6116,"postcodes":["21716"],"country_id":6252001,"country":"United
+        States","admin1":"Maryland","admin2":"Frederick County"},{"id":5245497,"name":"Berlin","latitude":43.96804,"longitude":-88.94345,"elevation":246.0,"feature_code":"PPL","country_code":"US","admin1_id":5279468,"admin2_id":5255015,"admin3_id":5245510,"timezone":"America/Chicago","population":5420,"postcodes":["54923"],"country_id":6252001,"country":"United
+        States","admin1":"Wisconsin","admin2":"Green Lake","admin3":"City of Berlin"},{"id":4348460,"name":"Berlin","latitude":38.32262,"longitude":-75.21769,"elevation":11.0,"feature_code":"PPL","country_code":"US","admin1_id":4361885,"admin2_id":4374180,"timezone":"America/New_York","population":5065,"postcodes":["21811"],"country_id":6252001,"country":"United
+        States","admin1":"Maryland","admin2":"Worcester"},{"id":4930431,"name":"Berlin","latitude":42.3812,"longitude":-71.63701,"elevation":100.0,"feature_code":"PPL","country_code":"US","admin1_id":6254926,"admin2_id":4956199,"admin3_id":4930436,"timezone":"America/New_York","population":2422,"postcodes":["01503"],"country_id":6252001,"country":"United
+        States","admin1":"Massachusetts","admin2":"Worcester","admin3":"Town of Berlin"},{"id":4556518,"name":"Berlin","latitude":39.92064,"longitude":-78.9578,"elevation":710.0,"feature_code":"PPL","country_code":"US","admin1_id":6254927,"admin2_id":5212857,"admin3_id":4556520,"timezone":"America/New_York","population":2019,"postcodes":["15530"],"country_id":6252001,"country":"United
+        States","admin1":"Pennsylvania","admin2":"Somerset","admin3":"Borough of Berlin"},{"id":4557666,"name":"East
+        Berlin","latitude":39.9376,"longitude":-76.97859,"elevation":131.0,"feature_code":"PPL","country_code":"US","admin1_id":6254927,"admin2_id":4556228,"admin3_id":4557667,"timezone":"America/New_York","population":1534,"postcodes":["17316"],"country_id":6252001,"country":"United
+        States","admin1":"Pennsylvania","admin2":"Adams County","admin3":"Borough
+        of East Berlin"},{"id":5147132,"name":"Berlin","latitude":40.56117,"longitude":-81.7943,"elevation":391.0,"feature_code":"PPL","country_code":"US","admin1_id":5165418,"admin2_id":5157783,"admin3_id":5147154,"timezone":"America/New_York","population":898,"postcodes":["44610"],"country_id":6252001,"country":"United
+        States","admin1":"Ohio","admin2":"Holmes","admin3":"Berlin Township"}],"generationtime_ms":0.50389767}'
+    headers:
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - deflate
+      Content-Length:
+      - '950'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Sat, 27 Jun 2026 14:36:47 GMT
+      X-Encoding-Time:
+      - 0.01983642578125 ms
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.34.2
+    method: GET
+    uri: https://api.open-meteo.com/v1/forecast?latitude=52.52437&longitude=13.41053&current=temperature_2m%2Crelative_humidity_2m%2Cdew_point_2m%2Cpressure_msl%2Capparent_temperature%2Cwind_speed_10m%2Cweather_code%2Cprecipitation%2Csnow_depth&daily=uv_index_max&timezone=auto&wind_speed_unit=ms
+  response:
+    body:
+      string: "{\"latitude\":52.52,\"longitude\":13.419998,\"generationtime_ms\":0.15985965728759766,\"utc_offset_seconds\":7200,\"timezone\":\"Europe/Berlin\",\"timezone_abbreviation\":\"GMT+2\",\"elevation\":46.0,\"current_units\":{\"time\":\"iso8601\",\"interval\":\"seconds\",\"temperature_2m\":\"\xB0C\",\"relative_humidity_2m\":\"%\",\"dew_point_2m\":\"\xB0C\",\"pressure_msl\":\"hPa\",\"apparent_temperature\":\"\xB0C\",\"wind_speed_10m\":\"m/s\",\"weather_code\":\"wmo
+        code\",\"precipitation\":\"mm\",\"snow_depth\":\"m\"},\"current\":{\"time\":\"2026-06-27T16:30\",\"interval\":900,\"temperature_2m\":39.2,\"relative_humidity_2m\":23,\"dew_point_2m\":14.3,\"pressure_msl\":1015.5,\"apparent_temperature\":40.7,\"wind_speed_10m\":0.63,\"weather_code\":1,\"precipitation\":0.00,\"snow_depth\":0.00},\"daily_units\":{\"time\":\"iso8601\",\"uv_index_max\":\"\"},\"daily\":{\"time\":[\"2026-06-27\",\"2026-06-28\",\"2026-06-29\",\"2026-06-30\",\"2026-07-01\",\"2026-07-02\",\"2026-07-03\"],\"uv_index_max\":[6.95,6.85,4.45,5.95,4.95,6.75,5.10]}}"
+    headers:
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - deflate
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Sat, 27 Jun 2026 14:36:48 GMT
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.34.2
+    method: GET
+    uri: https://geocoding-api.open-meteo.com/v1/search?name=Paris&count=10&language=en&format=json
+  response:
+    body:
+      string: "{\"results\":[{\"id\":2988507,\"name\":\"Paris\",\"latitude\":48.85341,\"longitude\":2.3488,\"elevation\":42.0,\"feature_code\":\"PPLC\",\"country_code\":\"FR\",\"admin1_id\":3012874,\"admin2_id\":2968815,\"admin3_id\":2988506,\"admin4_id\":6455259,\"timezone\":\"Europe/Paris\",\"population\":2138551,\"postcodes\":[\"75001\",\"75020\",\"75002\",\"75003\",\"75004\",\"75005\",\"75006\",\"75007\",\"75008\",\"75009\",\"75010\",\"75011\",\"75012\",\"75013\",\"75014\",\"75015\",\"75016\",\"75017\",\"75018\",\"75019\"],\"country_id\":3017382,\"country\":\"France\",\"admin1\":\"\xCEle-de-France
+        Region\",\"admin2\":\"Paris Department\",\"admin3\":\"Paris\",\"admin4\":\"Paris\"},{\"id\":4717560,\"name\":\"Paris\",\"latitude\":33.66094,\"longitude\":-95.55551,\"elevation\":183.0,\"feature_code\":\"PPLA2\",\"country_code\":\"US\",\"admin1_id\":4736286,\"admin2_id\":4705086,\"timezone\":\"America/Chicago\",\"population\":24782,\"postcodes\":[\"75460\",\"75461\",\"75462\"],\"country_id\":6252001,\"country\":\"United
+        States\",\"admin1\":\"Texas\",\"admin2\":\"Lamar\"},{\"id\":4647963,\"name\":\"Paris\",\"latitude\":36.302,\"longitude\":-88.32671,\"elevation\":157.0,\"feature_code\":\"PPLA2\",\"country_code\":\"US\",\"admin1_id\":4662168,\"admin2_id\":4628829,\"timezone\":\"America/Chicago\",\"population\":10150,\"postcodes\":[\"38242\"],\"country_id\":6252001,\"country\":\"United
+        States\",\"admin1\":\"Tennessee\",\"admin2\":\"Henry\"},{\"id\":4303602,\"name\":\"Paris\",\"latitude\":38.2098,\"longitude\":-84.25299,\"elevation\":257.0,\"feature_code\":\"PPLA2\",\"country_code\":\"US\",\"admin1_id\":6254925,\"admin2_id\":4285233,\"timezone\":\"America/New_York\",\"population\":9870,\"postcodes\":[\"40361\",\"40362\"],\"country_id\":6252001,\"country\":\"United
+        States\",\"admin1\":\"Kentucky\",\"admin2\":\"Bourbon\"},{\"id\":4246659,\"name\":\"Paris\",\"latitude\":39.61115,\"longitude\":-87.69614,\"elevation\":220.0,\"feature_code\":\"PPLA2\",\"country_code\":\"US\",\"admin1_id\":4896861,\"admin2_id\":4237672,\"admin3_id\":4246667,\"timezone\":\"America/Chicago\",\"population\":8432,\"postcodes\":[\"61944\"],\"country_id\":6252001,\"country\":\"United
+        States\",\"admin1\":\"Illinois\",\"admin2\":\"Edgar\",\"admin3\":\"Paris Township\"},{\"id\":4974617,\"name\":\"Paris\",\"latitude\":44.25979,\"longitude\":-70.50062,\"elevation\":247.0,\"feature_code\":\"PPLA2\",\"country_code\":\"US\",\"admin1_id\":4971068,\"admin2_id\":4974522,\"admin3_id\":4974624,\"timezone\":\"America/New_York\",\"population\":5073,\"postcodes\":[\"04271\"],\"country_id\":6252001,\"country\":\"United
+        States\",\"admin1\":\"Maine\",\"admin2\":\"Oxford\",\"admin3\":\"Town of Paris\"},{\"id\":4402452,\"name\":\"Paris\",\"latitude\":39.48087,\"longitude\":-92.00128,\"elevation\":211.0,\"feature_code\":\"PPLA2\",\"country_code\":\"US\",\"admin1_id\":4398678,\"admin2_id\":4398864,\"admin3_id\":4392235,\"timezone\":\"America/Chicago\",\"population\":1176,\"postcodes\":[\"65275\"],\"country_id\":6252001,\"country\":\"United
+        States\",\"admin1\":\"Missouri\",\"admin2\":\"Monroe\",\"admin3\":\"Jackson
+        Township\"},{\"id\":5603240,\"name\":\"Paris\",\"latitude\":42.22715,\"longitude\":-111.40104,\"elevation\":1818.0,\"feature_code\":\"PPLA2\",\"country_code\":\"US\",\"admin1_id\":5596512,\"admin2_id\":5585000,\"timezone\":\"America/Boise\",\"population\":506,\"postcodes\":[\"83261\"],\"country_id\":6252001,\"country\":\"United
+        States\",\"admin1\":\"Idaho\",\"admin2\":\"Bear Lake\"},{\"id\":4125402,\"name\":\"Paris\",\"latitude\":35.29203,\"longitude\":-93.72992,\"elevation\":123.0,\"feature_code\":\"PPL\",\"country_code\":\"US\",\"admin1_id\":4099753,\"admin2_id\":4119581,\"admin3_id\":4131058,\"timezone\":\"America/Chicago\",\"population\":3443,\"postcodes\":[\"72855\"],\"country_id\":6252001,\"country\":\"United
+        States\",\"admin1\":\"Arkansas\",\"admin2\":\"Logan County\",\"admin3\":\"Short
+        Mountain Township\"},{\"id\":5170013,\"name\":\"Saint Paris\",\"latitude\":40.12839,\"longitude\":-83.95966,\"elevation\":368.0,\"feature_code\":\"PPL\",\"country_code\":\"US\",\"admin1_id\":5165418,\"admin2_id\":5149757,\"admin3_id\":5159290,\"timezone\":\"America/New_York\",\"population\":2089,\"postcodes\":[\"43072\"],\"country_id\":6252001,\"country\":\"United
+        States\",\"admin1\":\"Ohio\",\"admin2\":\"Champaign\",\"admin3\":\"Johnson
+        Township\"}],\"generationtime_ms\":0.6790161}"
+    headers:
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - deflate
+      Content-Length:
+      - '1043'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Sat, 27 Jun 2026 14:36:48 GMT
+      X-Encoding-Time:
+      - 0.00476837158203125 ms
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.34.2
+    method: GET
+    uri: https://api.open-meteo.com/v1/forecast?latitude=48.85341&longitude=2.3488&current=temperature_2m%2Crelative_humidity_2m%2Cdew_point_2m%2Cpressure_msl%2Capparent_temperature%2Cwind_speed_10m%2Cweather_code%2Cprecipitation%2Csnow_depth&daily=uv_index_max&timezone=auto&wind_speed_unit=ms
+  response:
+    body:
+      string: "{\"latitude\":48.86,\"longitude\":2.3399997,\"generationtime_ms\":0.2562999725341797,\"utc_offset_seconds\":7200,\"timezone\":\"Europe/Paris\",\"timezone_abbreviation\":\"GMT+2\",\"elevation\":43.0,\"current_units\":{\"time\":\"iso8601\",\"interval\":\"seconds\",\"temperature_2m\":\"\xB0C\",\"relative_humidity_2m\":\"%\",\"dew_point_2m\":\"\xB0C\",\"pressure_msl\":\"hPa\",\"apparent_temperature\":\"\xB0C\",\"wind_speed_10m\":\"m/s\",\"weather_code\":\"wmo
+        code\",\"precipitation\":\"mm\",\"snow_depth\":\"m\"},\"current\":{\"time\":\"2026-06-27T16:30\",\"interval\":900,\"temperature_2m\":36.9,\"relative_humidity_2m\":29,\"dew_point_2m\":16.0,\"pressure_msl\":1013.9,\"apparent_temperature\":39.6,\"wind_speed_10m\":1.12,\"weather_code\":1,\"precipitation\":0.00,\"snow_depth\":0.00},\"daily_units\":{\"time\":\"iso8601\",\"uv_index_max\":\"\"},\"daily\":{\"time\":[\"2026-06-27\",\"2026-06-28\",\"2026-06-29\",\"2026-06-30\",\"2026-07-01\",\"2026-07-02\",\"2026-07-03\"],\"uv_index_max\":[7.40,7.40,7.30,7.30,7.10,7.20,7.10]}}"
+    headers:
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - deflate
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Sat, 27 Jun 2026 14:36:48 GMT
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.34.2
+    method: GET
+    uri: https://geocoding-api.open-meteo.com/v1/search?name=London&count=10&language=en&format=json
+  response:
+    body:
+      string: '{"results":[{"id":2643743,"name":"London","latitude":51.50853,"longitude":-0.12574,"elevation":25.0,"feature_code":"PPLC","country_code":"GB","admin1_id":6269131,"admin2_id":2648110,"timezone":"Europe/London","population":8961989,"country_id":2635167,"country":"United
+        Kingdom","admin1":"England","admin2":"Greater London"},{"id":6058560,"name":"London","latitude":42.98339,"longitude":-81.23304,"elevation":252.0,"feature_code":"PPL","country_code":"CA","admin1_id":6093943,"admin2_id":6073256,"timezone":"America/Toronto","population":422324,"country_id":6251999,"country":"Canada","admin1":"Ontario","admin2":"Middlesex
+        County"},{"id":4517009,"name":"London","latitude":39.88645,"longitude":-83.44825,"elevation":321.0,"feature_code":"PPLA2","country_code":"US","admin1_id":5165418,"admin2_id":4517365,"admin3_id":4517024,"timezone":"America/New_York","population":10060,"postcodes":["43140"],"country_id":6252001,"country":"United
+        States","admin1":"Ohio","admin2":"Madison","admin3":"City of London"},{"id":4298960,"name":"London","latitude":37.12898,"longitude":-84.08326,"elevation":378.0,"feature_code":"PPLA2","country_code":"US","admin1_id":6254925,"admin2_id":4297480,"timezone":"America/New_York","population":8126,"postcodes":["40741","40742","40743","40744","40745"],"country_id":6252001,"country":"United
+        States","admin1":"Kentucky","admin2":"Laurel"},{"id":4119617,"name":"London","latitude":35.32897,"longitude":-93.25296,"elevation":116.0,"feature_code":"PPL","country_code":"US","admin1_id":4099753,"admin2_id":4127100,"admin3_id":4105863,"timezone":"America/Chicago","population":1046,"postcodes":["72847"],"country_id":6252001,"country":"United
+        States","admin1":"Arkansas","admin2":"Pope","admin3":"Clark Township"},{"id":4707414,"name":"London","latitude":30.67685,"longitude":-99.57645,"elevation":519.0,"feature_code":"PPL","country_code":"US","admin1_id":4736286,"admin2_id":4703256,"timezone":"America/Chicago","population":180,"postcodes":["76854"],"country_id":6252001,"country":"United
+        States","admin1":"Texas","admin2":"Kimble"},{"id":4812926,"name":"London","latitude":38.19455,"longitude":-81.36872,"elevation":196.0,"feature_code":"PPL","country_code":"US","admin1_id":4826850,"admin2_id":4810630,"timezone":"America/New_York","postcodes":["25126"],"country_id":6252001,"country":"United
+        States","admin1":"West Virginia","admin2":"Kanawha County"},{"id":5367815,"name":"London","latitude":36.47606,"longitude":-119.44318,"elevation":91.0,"feature_code":"PPL","country_code":"US","admin1_id":5332921,"admin2_id":5403789,"timezone":"America/Los_Angeles","population":1869,"country_id":6252001,"country":"United
+        States","admin1":"California","admin2":"Tulare"},{"id":4030939,"name":"London","latitude":1.98487,"longitude":-157.47502,"elevation":8.0,"feature_code":"PPL","country_code":"KI","admin1_id":4030940,"admin2_id":7521593,"timezone":"Pacific/Kiritimati","population":1829,"country_id":4030945,"country":"Kiribati","admin1":"Line
+        Islands","admin2":"Kiritimati"},{"id":982299,"name":"London","latitude":-24.76667,"longitude":30.86667,"elevation":1515.0,"feature_code":"PPL","country_code":"ZA","admin1_id":1085595,"admin2_id":8299316,"admin3_id":8347559,"timezone":"Africa/Johannesburg","country_id":953987,"country":"South
+        Africa","admin1":"Mpumalanga","admin2":"Ehlanzeni District","admin3":"Thaba
+        Chweu"}],"generationtime_ms":0.6226301}'
+    headers:
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - deflate
+      Content-Length:
+      - '1016'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Sat, 27 Jun 2026 14:36:49 GMT
+      X-Encoding-Time:
+      - 0.004541873931884766 ms
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.34.2
+    method: GET
+    uri: https://api.open-meteo.com/v1/forecast?latitude=51.50853&longitude=-0.12574&current=temperature_2m%2Crelative_humidity_2m%2Cdew_point_2m%2Cpressure_msl%2Capparent_temperature%2Cwind_speed_10m%2Cweather_code%2Cprecipitation%2Csnow_depth&daily=uv_index_max&timezone=auto&wind_speed_unit=ms
+  response:
+    body:
+      string: "{\"latitude\":51.5,\"longitude\":-0.25,\"generationtime_ms\":0.3942251205444336,\"utc_offset_seconds\":3600,\"timezone\":\"Europe/London\",\"timezone_abbreviation\":\"GMT+1\",\"elevation\":23.0,\"current_units\":{\"time\":\"iso8601\",\"interval\":\"seconds\",\"temperature_2m\":\"\xB0C\",\"relative_humidity_2m\":\"%\",\"dew_point_2m\":\"\xB0C\",\"pressure_msl\":\"hPa\",\"apparent_temperature\":\"\xB0C\",\"wind_speed_10m\":\"m/s\",\"weather_code\":\"wmo
+        code\",\"precipitation\":\"mm\",\"snow_depth\":\"m\"},\"current\":{\"time\":\"2026-06-27T15:30\",\"interval\":900,\"temperature_2m\":31.9,\"relative_humidity_2m\":35,\"dew_point_2m\":14.5,\"pressure_msl\":1015.1,\"apparent_temperature\":31.2,\"wind_speed_10m\":4.10,\"weather_code\":3,\"precipitation\":0.00,\"snow_depth\":0.00},\"daily_units\":{\"time\":\"iso8601\",\"uv_index_max\":\"\"},\"daily\":{\"time\":[\"2026-06-27\",\"2026-06-28\",\"2026-06-29\",\"2026-06-30\",\"2026-07-01\",\"2026-07-02\",\"2026-07-03\"],\"uv_index_max\":[6.00,4.40,5.15,6.00,6.45,4.05,6.90]}}"
+    headers:
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - deflate
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Sat, 27 Jun 2026 14:36:49 GMT
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.34.2
+    method: GET
+    uri: https://geocoding-api.open-meteo.com/v1/search?name=Tokyo&count=10&language=en&format=json
+  response:
+    body:
+      string: "{\"results\":[{\"id\":1850147,\"name\":\"Tokyo\",\"latitude\":35.6895,\"longitude\":139.69171,\"elevation\":44.0,\"feature_code\":\"PPLC\",\"country_code\":\"JP\",\"admin1_id\":1850144,\"timezone\":\"Asia/Tokyo\",\"population\":9733276,\"country_id\":1861060,\"country\":\"Japan\",\"admin1\":\"Tokyo\"},{\"id\":2085290,\"name\":\"Tokyo\",\"latitude\":-8.4,\"longitude\":147.15,\"elevation\":2047.0,\"feature_code\":\"PPL\",\"country_code\":\"PG\",\"admin1_id\":2133763,\"timezone\":\"Pacific/Port_Moresby\",\"country_id\":2088628,\"country\":\"Papua
+        New Guinea\",\"admin1\":\"Central Province\"},{\"id\":7945384,\"name\":\"Tokyo\",\"latitude\":29.16998,\"longitude\":83.16319,\"elevation\":4288.0,\"feature_code\":\"PPLL\",\"country_code\":\"NP\",\"admin1_id\":12095452,\"admin2_id\":12095470,\"admin3_id\":12095634,\"timezone\":\"Asia/Kathmandu\",\"country_id\":1282988,\"country\":\"Nepal\",\"admin1\":\"Karnali
+        Pradesh\",\"admin2\":\"Dolpa\",\"admin3\":\"Dolpo Buddha\"},{\"id\":1834300,\"name\":\"Tongg\u014Fch\u2019ado-ri\",\"latitude\":34.23806,\"longitude\":125.93944,\"elevation\":12.0,\"feature_code\":\"PPL\",\"country_code\":\"KR\",\"admin1_id\":1845788,\"admin2_id\":1846089,\"admin3_id\":8690538,\"timezone\":\"Asia/Seoul\",\"country_id\":1835841,\"country\":\"South
+        Korea\",\"admin1\":\"Jeollanam-do\",\"admin2\":\"Jindo-gun\",\"admin3\":\"Jodo-myeon\"},{\"id\":1850142,\"name\":\"T\u014Dky\u014D
+        Zan\",\"latitude\":37.94393,\"longitude\":138.47507,\"elevation\":504.0,\"feature_code\":\"MT\",\"country_code\":\"JP\",\"admin1_id\":1855429,\"admin2_id\":1853313,\"timezone\":\"Asia/Tokyo\",\"country_id\":1861060,\"country\":\"Japan\",\"admin1\":\"Niigata\",\"admin2\":\"Sado\"},{\"id\":4737031,\"name\":\"Tokyo
+        Hill\",\"latitude\":26.92061,\"longitude\":-97.86361,\"elevation\":9.0,\"feature_code\":\"MT\",\"country_code\":\"US\",\"admin1_id\":4736286,\"admin2_id\":4702968,\"timezone\":\"America/Chicago\",\"country_id\":6252001,\"country\":\"United
+        States\",\"admin1\":\"Texas\",\"admin2\":\"Kenedy\"},{\"id\":6301828,\"name\":\"Tokyo
+        Heliport\",\"latitude\":35.63333,\"longitude\":139.85,\"elevation\":5.0,\"feature_code\":\"AIRH\",\"country_code\":\"JP\",\"admin1_id\":2113014,\"admin2_id\":1849185,\"timezone\":\"Asia/Tokyo\",\"country_id\":1861060,\"country\":\"Japan\",\"admin1\":\"Chiba\",\"admin2\":\"Urayasu-shi\"},{\"id\":10904583,\"name\":\"Tokyo
+        Disney Land\",\"latitude\":35.63308,\"longitude\":139.88057,\"elevation\":6.0,\"feature_code\":\"PRK\",\"country_code\":\"JP\",\"admin1_id\":2113014,\"admin2_id\":1849185,\"timezone\":\"Asia/Tokyo\",\"country_id\":1861060,\"country\":\"Japan\",\"admin1\":\"Chiba\",\"admin2\":\"Urayasu-shi\"},{\"id\":11137278,\"name\":\"Country
+        Farm German Village\",\"latitude\":35.40516,\"longitude\":140.06017,\"elevation\":55.0,\"feature_code\":\"PRK\",\"country_code\":\"JP\",\"admin1_id\":2113014,\"admin2_id\":2110982,\"timezone\":\"Asia/Tokyo\",\"country_id\":1861060,\"country\":\"Japan\",\"admin1\":\"Chiba\",\"admin2\":\"Sodegaura-shi\"},{\"id\":10958042,\"name\":\"T\u014Dky\u014Dk\u014D
+        Yach\u014D K\u014Den\",\"latitude\":35.58362,\"longitude\":139.76283,\"elevation\":7.0,\"feature_code\":\"PRK\",\"country_code\":\"JP\",\"admin1_id\":1850144,\"admin2_id\":1853655,\"timezone\":\"Asia/Tokyo\",\"country_id\":1861060,\"country\":\"Japan\",\"admin1\":\"Tokyo\",\"admin2\":\"\u014Cta-ku\"}],\"generationtime_ms\":0.8575916}"
+    headers:
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - deflate
+      Content-Length:
+      - '910'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Sat, 27 Jun 2026 14:36:49 GMT
+      X-Encoding-Time:
+      - 0.004565715789794922 ms
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.34.2
+    method: GET
+    uri: https://api.open-meteo.com/v1/forecast?latitude=35.6895&longitude=139.69171&current=temperature_2m%2Crelative_humidity_2m%2Cdew_point_2m%2Cpressure_msl%2Capparent_temperature%2Cwind_speed_10m%2Cweather_code%2Cprecipitation%2Csnow_depth&daily=uv_index_max&timezone=auto&wind_speed_unit=ms
+  response:
+    body:
+      string: "{\"latitude\":35.7,\"longitude\":139.6875,\"generationtime_ms\":0.12421607971191406,\"utc_offset_seconds\":32400,\"timezone\":\"Asia/Tokyo\",\"timezone_abbreviation\":\"GMT+9\",\"elevation\":40.0,\"current_units\":{\"time\":\"iso8601\",\"interval\":\"seconds\",\"temperature_2m\":\"\xB0C\",\"relative_humidity_2m\":\"%\",\"dew_point_2m\":\"\xB0C\",\"pressure_msl\":\"hPa\",\"apparent_temperature\":\"\xB0C\",\"wind_speed_10m\":\"m/s\",\"weather_code\":\"wmo
+        code\",\"precipitation\":\"mm\",\"snow_depth\":\"m\"},\"current\":{\"time\":\"2026-06-27T23:30\",\"interval\":900,\"temperature_2m\":21.5,\"relative_humidity_2m\":96,\"dew_point_2m\":20.8,\"pressure_msl\":1002.9,\"apparent_temperature\":25.4,\"wind_speed_10m\":0.72,\"weather_code\":0,\"precipitation\":0.00,\"snow_depth\":0.00},\"daily_units\":{\"time\":\"iso8601\",\"uv_index_max\":\"\"},\"daily\":{\"time\":[\"2026-06-27\",\"2026-06-28\",\"2026-06-29\",\"2026-06-30\",\"2026-07-01\",\"2026-07-02\",\"2026-07-03\"],\"uv_index_max\":[2.55,0.75,8.10,6.65,7.05,0.75,7.25]}}"
+    headers:
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - deflate
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Sat, 27 Jun 2026 14:36:50 GMT
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.34.2
+    method: GET
+    uri: https://geocoding-api.open-meteo.com/v1/search?name=New+York&count=10&language=en&format=json
+  response:
+    body:
+      string: "{\"results\":[{\"id\":5128581,\"name\":\"New York\",\"latitude\":40.71427,\"longitude\":-74.00597,\"elevation\":10.0,\"feature_code\":\"PPL\",\"country_code\":\"US\",\"admin1_id\":5128638,\"timezone\":\"America/New_York\",\"population\":8804190,\"postcodes\":[\"10001\",\"10002\",\"10003\",\"10004\",\"10005\",\"10006\",\"10007\",\"10008\",\"10009\",\"10010\",\"10011\",\"10012\",\"10013\",\"10014\",\"10016\",\"10017\",\"10018\",\"10019\",\"10020\",\"10021\",\"10022\",\"10023\",\"10024\",\"10025\",\"10026\",\"10027\",\"10028\",\"10029\",\"10030\",\"10031\",\"10032\",\"10033\",\"10034\",\"10035\",\"10036\",\"10037\",\"10038\",\"10039\",\"10040\",\"10041\",\"10043\",\"10044\",\"10045\",\"10055\",\"10060\",\"10065\",\"10069\",\"10080\",\"10081\",\"10087\",\"10090\",\"10101\",\"10102\",\"10103\",\"10104\",\"10105\",\"10106\",\"10107\",\"10108\",\"10109\",\"10110\",\"10111\",\"10112\",\"10113\",\"10114\",\"10115\",\"10116\",\"10117\",\"10118\",\"10119\",\"10120\",\"10121\",\"10122\",\"10123\",\"10124\",\"10125\",\"10126\",\"10128\",\"10129\",\"10130\",\"10131\",\"10132\",\"10133\",\"10138\",\"10150\",\"10151\",\"10152\",\"10153\",\"10154\",\"10155\",\"10156\",\"10157\",\"10158\",\"10159\",\"10160\",\"10161\",\"10162\",\"10163\",\"10164\",\"10165\",\"10166\",\"10167\",\"10168\",\"10169\",\"10170\",\"10171\",\"10172\",\"10173\",\"10174\",\"10175\",\"10176\",\"10177\",\"10178\",\"10179\",\"10185\",\"10199\",\"10203\",\"10211\",\"10212\",\"10213\",\"10242\",\"10249\",\"10256\",\"10258\",\"10259\",\"10260\",\"10261\",\"10265\",\"10268\",\"10269\",\"10270\",\"10271\",\"10272\",\"10273\",\"10274\",\"10275\",\"10276\",\"10277\",\"10278\",\"10279\",\"10280\",\"10281\",\"10282\",\"10285\",\"10286\"],\"country_id\":6252001,\"country\":\"United
+        States\",\"admin1\":\"New York\"},{\"id\":5082331,\"name\":\"York\",\"latitude\":40.86807,\"longitude\":-97.592,\"elevation\":488.0,\"feature_code\":\"PPLA2\",\"country_code\":\"US\",\"admin1_id\":5073708,\"admin2_id\":5082335,\"admin3_id\":7317456,\"timezone\":\"America/Chicago\",\"population\":7864,\"postcodes\":[\"68467\"],\"country_id\":6252001,\"country\":\"United
+        States\",\"admin1\":\"Nebraska\",\"admin2\":\"York\",\"admin3\":\"City of
+        York\"},{\"id\":4257559,\"name\":\"Florence\",\"latitude\":38.78423,\"longitude\":-84.92439,\"elevation\":145.0,\"feature_code\":\"PPL\",\"country_code\":\"US\",\"admin1_id\":4921868,\"admin2_id\":4265618,\"admin3_id\":4267282,\"timezone\":\"America/Indiana/Vevay\",\"population\":80,\"postcodes\":[\"47020\"],\"country_id\":6252001,\"country\":\"United
+        States\",\"admin1\":\"Indiana\",\"admin2\":\"Switzerland\",\"admin3\":\"York
+        Township\"},{\"id\":2641508,\"name\":\"New York\",\"latitude\":53.07897,\"longitude\":-0.14008,\"elevation\":7.0,\"feature_code\":\"PPL\",\"country_code\":\"GB\",\"admin1_id\":6269131,\"admin2_id\":2644486,\"admin3_id\":7290589,\"admin4_id\":7298672,\"timezone\":\"Europe/London\",\"country_id\":2635167,\"country\":\"United
+        Kingdom\",\"admin1\":\"England\",\"admin2\":\"Lincolnshire\",\"admin3\":\"East
+        Lindsey District\",\"admin4\":\"Wildmore\"},{\"id\":3489274,\"name\":\"New
+        York\",\"latitude\":18.25397,\"longitude\":-77.17683,\"elevation\":586.0,\"feature_code\":\"PPL\",\"country_code\":\"JM\",\"admin1_id\":3488715,\"admin2_id\":11495178,\"timezone\":\"America/Jamaica\",\"country_id\":3489940,\"country\":\"Jamaica\",\"admin1\":\"Saint
+        Ann Parish\",\"admin2\":\"Moneague\"},{\"id\":3489275,\"name\":\"New York\",\"latitude\":18.11366,\"longitude\":-77.12767,\"elevation\":508.0,\"feature_code\":\"PPL\",\"country_code\":\"JM\",\"admin1_id\":3488711,\"admin2_id\":11495047,\"timezone\":\"America/Jamaica\",\"country_id\":3489940,\"country\":\"Jamaica\",\"admin1\":\"Saint
+        Catherine Parish\",\"admin2\":\"Ewarton\"},{\"id\":3522593,\"name\":\"Nueva
+        York\",\"latitude\":16.26667,\"longitude\":-93.23333,\"elevation\":569.0,\"feature_code\":\"PPL\",\"country_code\":\"MX\",\"admin1_id\":3531011,\"admin2_id\":8581790,\"timezone\":\"America/Mexico_City\",\"country_id\":3996063,\"country\":\"Mexico\",\"admin1\":\"Chiapas\",\"admin2\":\"Villaflores
+        Municipality\"},{\"id\":3604380,\"name\":\"Nueva York\",\"latitude\":14.8,\"longitude\":-88.36667,\"elevation\":1304.0,\"feature_code\":\"PPL\",\"country_code\":\"HN\",\"admin1_id\":3601689,\"admin2_id\":3611147,\"timezone\":\"America/Tegucigalpa\",\"country_id\":3608932,\"country\":\"Honduras\",\"admin1\":\"Santa
+        B\xE1rbara Department\",\"admin2\":\"El N\xEDspero\"},{\"id\":4049286,\"name\":\"New
+        York\",\"latitude\":39.68529,\"longitude\":-93.92688,\"elevation\":244.0,\"feature_code\":\"PPL\",\"country_code\":\"US\",\"admin1_id\":4398678,\"admin2_id\":4379520,\"admin3_id\":4400518,\"timezone\":\"America/Chicago\",\"country_id\":6252001,\"country\":\"United
+        States\",\"admin1\":\"Missouri\",\"admin2\":\"Caldwell\",\"admin3\":\"New
+        York Township\"},{\"id\":4165941,\"name\":\"New York\",\"latitude\":30.83852,\"longitude\":-87.2008,\"elevation\":70.0,\"feature_code\":\"PPL\",\"country_code\":\"US\",\"admin1_id\":4155751,\"admin2_id\":4172096,\"timezone\":\"America/Chicago\",\"country_id\":6252001,\"country\":\"United
+        States\",\"admin1\":\"Florida\",\"admin2\":\"Santa Rosa\"}],\"generationtime_ms\":1.1304617}"
+    headers:
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - deflate
+      Content-Length:
+      - '1356'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Sat, 27 Jun 2026 14:36:50 GMT
+      X-Encoding-Time:
+      - 0.007712841033935547 ms
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.34.2
+    method: GET
+    uri: https://api.open-meteo.com/v1/forecast?latitude=40.71427&longitude=-74.00597&current=temperature_2m%2Crelative_humidity_2m%2Cdew_point_2m%2Cpressure_msl%2Capparent_temperature%2Cwind_speed_10m%2Cweather_code%2Cprecipitation%2Csnow_depth&daily=uv_index_max&timezone=auto&wind_speed_unit=ms
+  response:
+    body:
+      string: "{\"latitude\":40.710335,\"longitude\":-73.99308,\"generationtime_ms\":0.19478797912597656,\"utc_offset_seconds\":-14400,\"timezone\":\"America/New_York\",\"timezone_abbreviation\":\"GMT-4\",\"elevation\":51.0,\"current_units\":{\"time\":\"iso8601\",\"interval\":\"seconds\",\"temperature_2m\":\"\xB0C\",\"relative_humidity_2m\":\"%\",\"dew_point_2m\":\"\xB0C\",\"pressure_msl\":\"hPa\",\"apparent_temperature\":\"\xB0C\",\"wind_speed_10m\":\"m/s\",\"weather_code\":\"wmo
+        code\",\"precipitation\":\"mm\",\"snow_depth\":\"m\"},\"current\":{\"time\":\"2026-06-27T10:30\",\"interval\":900,\"temperature_2m\":26.1,\"relative_humidity_2m\":58,\"dew_point_2m\":17.2,\"pressure_msl\":1018.3,\"apparent_temperature\":28.2,\"wind_speed_10m\":1.87,\"weather_code\":1,\"precipitation\":0.00,\"snow_depth\":0.00},\"daily_units\":{\"time\":\"iso8601\",\"uv_index_max\":\"\"},\"daily\":{\"time\":[\"2026-06-27\",\"2026-06-28\",\"2026-06-29\",\"2026-06-30\",\"2026-07-01\",\"2026-07-02\",\"2026-07-03\"],\"uv_index_max\":[4.45,7.45,7.90,7.65,8.00,7.95,7.95]}}"
+    headers:
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - deflate
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Sat, 27 Jun 2026 14:36:50 GMT
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.34.2
+    method: GET
+    uri: https://geocoding-api.open-meteo.com/v1/search?name=Vorkuta&count=10&language=en&format=json
+  response:
+    body:
+      string: '{"results":[{"id":1486910,"name":"Vorkuta","latitude":67.50867,"longitude":64.0667,"elevation":174.0,"feature_code":"PPLA2","country_code":"RU","admin1_id":545854,"timezone":"Europe/Moscow","population":80039,"country_id":2017370,"country":"Russia","admin1":"Komi"},{"id":1486911,"name":"Vorkuta","latitude":66.36667,"longitude":70.13333,"elevation":9999.0,"feature_code":"PPL","country_code":"RU","admin1_id":1486462,"timezone":"Asia/Yekaterinburg","country_id":2017370,"country":"Russia","admin1":"Yamalo-Nenets"},{"id":11458852,"name":"Vorkuta
+        East","latitude":67.46452,"longitude":64.30689,"elevation":192.0,"feature_code":"AIRF","country_code":"RU","admin1_id":545854,"timezone":"Europe/Moscow","country_id":2017370,"country":"Russia","admin1":"Komi"},{"id":7668560,"name":"Vorkuta
+        Airport","latitude":67.4886,"longitude":63.9931,"elevation":175.0,"feature_code":"AIRP","country_code":"RU","admin1_id":545854,"timezone":"Europe/Moscow","country_id":2017370,"country":"Russia","admin1":"Komi"}],"generationtime_ms":0.5682707}'
+    headers:
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - deflate
+      Content-Length:
+      - '353'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Sat, 27 Jun 2026 14:36:50 GMT
+      X-Encoding-Time:
+      - 0.005233287811279297 ms
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.34.2
+    method: GET
+    uri: https://api.open-meteo.com/v1/forecast?latitude=67.50867&longitude=64.0667&current=temperature_2m%2Crelative_humidity_2m%2Cdew_point_2m%2Cpressure_msl%2Capparent_temperature%2Cwind_speed_10m%2Cweather_code%2Cprecipitation%2Csnow_depth&daily=uv_index_max&timezone=auto&wind_speed_unit=ms
+  response:
+    body:
+      string: "{\"latitude\":67.59226,\"longitude\":64.086685,\"generationtime_ms\":0.16820430755615234,\"utc_offset_seconds\":10800,\"timezone\":\"Europe/Moscow\",\"timezone_abbreviation\":\"GMT+3\",\"elevation\":168.0,\"current_units\":{\"time\":\"iso8601\",\"interval\":\"seconds\",\"temperature_2m\":\"\xB0C\",\"relative_humidity_2m\":\"%\",\"dew_point_2m\":\"\xB0C\",\"pressure_msl\":\"hPa\",\"apparent_temperature\":\"\xB0C\",\"wind_speed_10m\":\"m/s\",\"weather_code\":\"wmo
+        code\",\"precipitation\":\"mm\",\"snow_depth\":\"m\"},\"current\":{\"time\":\"2026-06-27T17:30\",\"interval\":900,\"temperature_2m\":10.7,\"relative_humidity_2m\":70,\"dew_point_2m\":5.4,\"pressure_msl\":1018.4,\"apparent_temperature\":6.9,\"wind_speed_10m\":5.06,\"weather_code\":3,\"precipitation\":0.00,\"snow_depth\":0.00},\"daily_units\":{\"time\":\"iso8601\",\"uv_index_max\":\"\"},\"daily\":{\"time\":[\"2026-06-27\",\"2026-06-28\",\"2026-06-29\",\"2026-06-30\",\"2026-07-01\",\"2026-07-02\",\"2026-07-03\"],\"uv_index_max\":[4.05,4.90,5.25,5.15,5.15,4.85,5.10]}}"
+    headers:
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - deflate
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Sat, 27 Jun 2026 14:36:51 GMT
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.34.2
+    method: GET
+    uri: https://geocoding-api.open-meteo.com/v1/search?name=Queenstown&count=10&language=en&format=json
+  response:
+    body:
+      string: '{"results":[{"id":963516,"name":"Queenstown","latitude":-31.89756,"longitude":26.87533,"elevation":1081.0,"feature_code":"PPLA2","country_code":"ZA","admin1_id":1085593,"admin2_id":8347343,"admin3_id":8347505,"timezone":"Africa/Johannesburg","population":118599,"country_id":953987,"country":"South
+        Africa","admin1":"Eastern Cape","admin2":"Chris Hani District Municipality","admin3":"Lukanji"},{"id":4366379,"name":"Queenstown","latitude":38.99067,"longitude":-76.15773,"elevation":6.0,"feature_code":"PPL","country_code":"US","admin1_id":4361885,"admin2_id":4366351,"timezone":"America/New_York","population":652,"postcodes":["21658"],"country_id":6252001,"country":"United
+        States","admin1":"Maryland","admin2":"Queen Anne''s County"},{"id":6204696,"name":"Queenstown","latitude":-45.03023,"longitude":168.6627,"elevation":328.0,"feature_code":"PPL","country_code":"NZ","admin1_id":6612109,"admin2_id":7910058,"timezone":"Pacific/Auckland","population":10442,"country_id":2186224,"country":"New
+        Zealand","admin1":"Otago","admin2":"Queenstown-Lakes District"},{"id":2152272,"name":"Queenstown","latitude":-42.0805,"longitude":145.55646,"elevation":148.0,"feature_code":"PPL","country_code":"AU","admin1_id":2147291,"admin2_id":7839372,"timezone":"Australia/Hobart","population":1800,"country_id":2077456,"country":"Australia","admin1":"Tasmania","admin2":"West
+        Coast"},{"id":4366378,"name":"Queenstown","latitude":38.95067,"longitude":-76.9647,"elevation":8.0,"feature_code":"PPL","country_code":"US","admin1_id":4361885,"admin2_id":4366164,"timezone":"America/New_York","population":615,"country_id":6252001,"country":"United
+        States","admin1":"Maryland","admin2":"Prince George''s County"},{"id":3376314,"name":"Queenstown","latitude":5.88645,"longitude":-57.14091,"elevation":9999.0,"feature_code":"PPL","country_code":"GY","admin1_id":3378840,"timezone":"America/Guyana","country_id":3378535,"country":"Guyana","admin1":"East
+        Berbice-Corentyne Region"},{"id":4085219,"name":"Queenstown","latitude":33.58816,"longitude":-86.6211,"elevation":219.0,"feature_code":"PPL","country_code":"US","admin1_id":4829764,"admin2_id":4069696,"timezone":"America/Chicago","country_id":6252001,"country":"United
+        States","admin1":"Alabama","admin2":"Jefferson"},{"id":4780746,"name":"Queenstown","latitude":37.68042,"longitude":-76.48745,"elevation":6.0,"feature_code":"PPL","country_code":"US","admin1_id":6254928,"admin2_id":4768515,"timezone":"America/New_York","country_id":6252001,"country":"United
+        States","admin1":"Virginia","admin2":"Lancaster"},{"id":5207424,"name":"Queenstown","latitude":41.00645,"longitude":-79.63199,"elevation":348.0,"feature_code":"PPL","country_code":"US","admin1_id":6254927,"admin2_id":5178515,"admin3_id":5205713,"timezone":"America/New_York","country_id":6252001,"country":"United
+        States","admin1":"Pennsylvania","admin2":"Armstrong County","admin3":"Perry
+        Township"},{"id":5268222,"name":"Queenstown","latitude":45.35191,"longitude":-90.2882,"elevation":457.0,"feature_code":"PPL","country_code":"US","admin1_id":5279468,"admin2_id":5275451,"admin3_id":5278650,"timezone":"America/Chicago","country_id":6252001,"country":"United
+        States","admin1":"Wisconsin","admin2":"Taylor","admin3":"Town of Westboro"}],"generationtime_ms":0.52011013}'
+    headers:
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - deflate
+      Content-Length:
+      - '981'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Sat, 27 Jun 2026 14:36:51 GMT
+      X-Encoding-Time:
+      - 0.009119510650634766 ms
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.34.2
+    method: GET
+    uri: https://api.open-meteo.com/v1/forecast?latitude=-45.03023&longitude=168.6627&current=temperature_2m%2Crelative_humidity_2m%2Cdew_point_2m%2Cpressure_msl%2Capparent_temperature%2Cwind_speed_10m%2Cweather_code%2Cprecipitation%2Csnow_depth&daily=uv_index_max&timezone=auto&wind_speed_unit=ms
+  response:
+    body:
+      string: "{\"latitude\":-45.026363,\"longitude\":168.68013,\"generationtime_ms\":0.1590251922607422,\"utc_offset_seconds\":43200,\"timezone\":\"Pacific/Auckland\",\"timezone_abbreviation\":\"GMT+12\",\"elevation\":324.0,\"current_units\":{\"time\":\"iso8601\",\"interval\":\"seconds\",\"temperature_2m\":\"\xB0C\",\"relative_humidity_2m\":\"%\",\"dew_point_2m\":\"\xB0C\",\"pressure_msl\":\"hPa\",\"apparent_temperature\":\"\xB0C\",\"wind_speed_10m\":\"m/s\",\"weather_code\":\"wmo
+        code\",\"precipitation\":\"mm\",\"snow_depth\":\"m\"},\"current\":{\"time\":\"2026-06-28T02:30\",\"interval\":900,\"temperature_2m\":2.6,\"relative_humidity_2m\":70,\"dew_point_2m\":-2.4,\"pressure_msl\":1027.0,\"apparent_temperature\":-0.0,\"wind_speed_10m\":0.25,\"weather_code\":0,\"precipitation\":0.00,\"snow_depth\":0.02},\"daily_units\":{\"time\":\"iso8601\",\"uv_index_max\":\"\"},\"daily\":{\"time\":[\"2026-06-28\",\"2026-06-29\",\"2026-06-30\",\"2026-07-01\",\"2026-07-02\",\"2026-07-03\",\"2026-07-04\"],\"uv_index_max\":[2.00,2.00,2.00,1.95,2.00,1.60,1.10]}}"
+    headers:
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - deflate
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Sat, 27 Jun 2026 14:36:51 GMT
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.34.2
+    method: GET
+    uri: https://geocoding-api.open-meteo.com/v1/search?name=Smolensk&count=10&language=en&format=json
+  response:
+    body:
+      string: '{"results":[{"id":491687,"name":"Smolensk","latitude":54.77826,"longitude":32.05088,"elevation":238.0,"feature_code":"PPLA","country_code":"RU","admin1_id":491684,"timezone":"Europe/Moscow","population":330025,"country_id":2017370,"country":"Russia","admin1":"Smolensk
+        Oblast"},{"id":1491633,"name":"Smolenskoye","latitude":52.30358,"longitude":85.07597,"elevation":179.0,"feature_code":"PPLA2","country_code":"RU","admin1_id":1511732,"timezone":"Asia/Barnaul","population":9431,"country_id":2017370,"country":"Russia","admin1":"Altai
+        Krai"},{"id":2016405,"name":"Smolenka","latitude":52.1414,"longitude":113.50704,"elevation":689.0,"feature_code":"PPL","country_code":"RU","admin1_id":7779061,"timezone":"Asia/Chita","population":2933,"country_id":2017370,"country":"Russia","admin1":"Zabaykalskiy
+        (Transbaikal) Kray"},{"id":491685,"name":"Smolenskaya","latitude":44.78636,"longitude":38.80333,"elevation":37.0,"feature_code":"PPL","country_code":"RU","admin1_id":542415,"timezone":"Europe/Moscow","population":8130,"country_id":2017370,"country":"Russia","admin1":"Krasnodar
+        Krai"},{"id":491682,"name":"Smolenskiy","latitude":53.86667,"longitude":50.65,"elevation":148.0,"feature_code":"PPL","country_code":"RU","admin1_id":499068,"timezone":"Europe/Samara","country_id":2017370,"country":"Russia","admin1":"Samara
+        Oblast"},{"id":821234,"name":"Smolenskiy","latitude":53.31679,"longitude":37.72655,"elevation":236.0,"feature_code":"PPL","country_code":"RU","admin1_id":480508,"timezone":"Europe/Moscow","country_id":2017370,"country":"Russia","admin1":"Tula
+        Oblast"},{"id":1491635,"name":"Smolenskiy","latitude":57.76667,"longitude":72.71667,"elevation":97.0,"feature_code":"PPL","country_code":"RU","admin1_id":1496152,"timezone":"Asia/Omsk","country_id":2017370,"country":"Russia","admin1":"Omsk
+        Oblast"},{"id":1491636,"name":"Smolenskiy","latitude":55.53333,"longitude":86.91667,"elevation":326.0,"feature_code":"PPL","country_code":"RU","admin1_id":1503900,"timezone":"Asia/Novokuznetsk","country_id":2017370,"country":"Russia","admin1":"Kemerovo
+        Oblast"},{"id":1491637,"name":"Smolenskiy","latitude":55.11667,"longitude":84.03333,"elevation":241.0,"feature_code":"PPL","country_code":"RU","admin1_id":1496745,"timezone":"Asia/Novosibirsk","country_id":2017370,"country":"Russia","admin1":"Novosibirsk
+        Oblast"},{"id":1491638,"name":"Smolenskiy","latitude":55.03333,"longitude":81.3,"elevation":151.0,"feature_code":"PPL","country_code":"RU","admin1_id":1496745,"timezone":"Asia/Novosibirsk","country_id":2017370,"country":"Russia","admin1":"Novosibirsk
+        Oblast"}],"generationtime_ms":1.83177}'
+    headers:
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - deflate
+      Content-Length:
+      - '626'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Sat, 27 Jun 2026 14:36:51 GMT
+      X-Encoding-Time:
+      - 0.005614757537841797 ms
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.34.2
+    method: GET
+    uri: https://api.open-meteo.com/v1/forecast?latitude=54.77826&longitude=32.05088&current=temperature_2m%2Crelative_humidity_2m%2Cdew_point_2m%2Cpressure_msl%2Capparent_temperature%2Cwind_speed_10m%2Cweather_code%2Cprecipitation%2Csnow_depth&daily=uv_index_max&timezone=auto&wind_speed_unit=ms
+  response:
+    body:
+      string: "{\"latitude\":54.75,\"longitude\":32.0625,\"generationtime_ms\":0.10561943054199219,\"utc_offset_seconds\":10800,\"timezone\":\"Europe/Moscow\",\"timezone_abbreviation\":\"GMT+3\",\"elevation\":247.0,\"current_units\":{\"time\":\"iso8601\",\"interval\":\"seconds\",\"temperature_2m\":\"\xB0C\",\"relative_humidity_2m\":\"%\",\"dew_point_2m\":\"\xB0C\",\"pressure_msl\":\"hPa\",\"apparent_temperature\":\"\xB0C\",\"wind_speed_10m\":\"m/s\",\"weather_code\":\"wmo
+        code\",\"precipitation\":\"mm\",\"snow_depth\":\"m\"},\"current\":{\"time\":\"2026-06-27T17:30\",\"interval\":900,\"temperature_2m\":17.1,\"relative_humidity_2m\":83,\"dew_point_2m\":14.1,\"pressure_msl\":1018.5,\"apparent_temperature\":16.8,\"wind_speed_10m\":2.98,\"weather_code\":3,\"precipitation\":0.00,\"snow_depth\":0.00},\"daily_units\":{\"time\":\"iso8601\",\"uv_index_max\":\"\"},\"daily\":{\"time\":[\"2026-06-27\",\"2026-06-28\",\"2026-06-29\",\"2026-06-30\",\"2026-07-01\",\"2026-07-02\",\"2026-07-03\"],\"uv_index_max\":[4.15,6.15,6.00,6.15,6.20,2.90,3.05]}}"
+    headers:
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - deflate
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Sat, 27 Jun 2026 14:36:52 GMT
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.34.2
+    method: GET
+    uri: https://geocoding-api.open-meteo.com/v1/search?name=Moscow&count=10&language=en&format=json
+  response:
+    body:
+      string: '{"results":[{"id":524901,"name":"Moscow","latitude":55.75204,"longitude":37.61781,"elevation":155.0,"feature_code":"PPLC","country_code":"RU","admin1_id":524894,"timezone":"Europe/Moscow","population":10381222,"country_id":2017370,"country":"Russia","admin1":"Moscow"},{"id":5601538,"name":"Moscow","latitude":46.73239,"longitude":-117.00017,"elevation":786.0,"feature_code":"PPLA2","country_code":"US","admin1_id":5596512,"admin2_id":5598264,"timezone":"America/Los_Angeles","population":25060,"postcodes":["83843","83844"],"country_id":6252001,"country":"United
+        States","admin1":"Idaho","admin2":"Latah"},{"id":4399153,"name":"Moscow Mills","latitude":38.94783,"longitude":-90.91819,"elevation":164.0,"feature_code":"PPL","country_code":"US","admin1_id":4398678,"admin2_id":4395330,"admin3_id":4381403,"timezone":"America/Chicago","population":2567,"postcodes":["63362"],"country_id":6252001,"country":"United
+        States","admin1":"Missouri","admin2":"Lincoln","admin3":"Clark Township"},{"id":5202009,"name":"Moscow","latitude":41.33675,"longitude":-75.51852,"elevation":476.0,"feature_code":"PPL","country_code":"US","admin1_id":6254927,"admin2_id":5196674,"admin3_id":5202011,"timezone":"America/New_York","population":1960,"postcodes":["18444"],"country_id":6252001,"country":"United
+        States","admin1":"Pennsylvania","admin2":"Lackawanna County","admin3":"Borough
+        of Moscow"},{"id":4092267,"name":"Sulligent","latitude":33.90177,"longitude":-88.13448,"elevation":99.0,"feature_code":"PPL","country_code":"US","admin1_id":4829764,"admin2_id":4071676,"timezone":"America/Chicago","population":1844,"postcodes":["35586"],"country_id":6252001,"country":"United
+        States","admin1":"Alabama","admin2":"Lamar County"},{"id":4642988,"name":"Moscow","latitude":35.06203,"longitude":-89.40396,"elevation":108.0,"feature_code":"PPL","country_code":"US","admin1_id":4662168,"admin2_id":4621908,"timezone":"America/Chicago","population":532,"postcodes":["38057"],"country_id":6252001,"country":"United
+        States","admin1":"Tennessee","admin2":"Fayette"},{"id":5124210,"name":"Leicester","latitude":42.77201,"longitude":-77.89667,"elevation":198.0,"feature_code":"PPL","country_code":"US","admin1_id":5128638,"admin2_id":5124928,"admin3_id":5124211,"timezone":"America/New_York","population":455,"postcodes":["14481"],"country_id":6252001,"country":"United
+        States","admin1":"New York","admin2":"Livingston","admin3":"Town of Leicester"},{"id":5446028,"name":"Moscow","latitude":37.32363,"longitude":-101.20572,"elevation":930.0,"feature_code":"PPL","country_code":"US","admin1_id":4273857,"admin2_id":5446576,"admin3_id":5446032,"timezone":"America/Chicago","population":319,"postcodes":["67952"],"country_id":6252001,"country":"United
+        States","admin1":"Kansas","admin2":"Stevens","admin3":"Moscow Township"},{"id":4868038,"name":"Moscow","latitude":41.57581,"longitude":-91.08348,"elevation":199.0,"feature_code":"PPL","country_code":"US","admin1_id":4862182,"admin2_id":4868410,"admin3_id":4868043,"timezone":"America/Chicago","population":290,"postcodes":["52760"],"country_id":6252001,"country":"United
+        States","admin1":"Iowa","admin2":"Muscatine","admin3":"Moscow Township"},{"id":4518753,"name":"Moscow","latitude":38.85701,"longitude":-84.2291,"elevation":152.0,"feature_code":"PPL","country_code":"US","admin1_id":5165418,"admin2_id":4508924,"admin3_id":4527700,"timezone":"America/New_York","population":186,"postcodes":["45153"],"country_id":6252001,"country":"United
+        States","admin1":"Ohio","admin2":"Clermont","admin3":"Washington Township"}],"generationtime_ms":0.2644062}'
+    headers:
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - deflate
+      Content-Length:
+      - '964'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Sat, 27 Jun 2026 14:36:52 GMT
+      X-Encoding-Time:
+      - 0.005447864532470703 ms
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.34.2
+    method: GET
+    uri: https://api.open-meteo.com/v1/forecast?latitude=55.75204&longitude=37.61781&current=temperature_2m%2Crelative_humidity_2m%2Cdew_point_2m%2Cpressure_msl%2Capparent_temperature%2Cwind_speed_10m%2Cweather_code%2Cprecipitation%2Csnow_depth&daily=uv_index_max&timezone=auto&wind_speed_unit=ms
+  response:
+    body:
+      string: "{\"latitude\":55.75,\"longitude\":37.625,\"generationtime_ms\":0.1304149627685547,\"utc_offset_seconds\":10800,\"timezone\":\"Europe/Moscow\",\"timezone_abbreviation\":\"GMT+3\",\"elevation\":151.0,\"current_units\":{\"time\":\"iso8601\",\"interval\":\"seconds\",\"temperature_2m\":\"\xB0C\",\"relative_humidity_2m\":\"%\",\"dew_point_2m\":\"\xB0C\",\"pressure_msl\":\"hPa\",\"apparent_temperature\":\"\xB0C\",\"wind_speed_10m\":\"m/s\",\"weather_code\":\"wmo
+        code\",\"precipitation\":\"mm\",\"snow_depth\":\"m\"},\"current\":{\"time\":\"2026-06-27T17:30\",\"interval\":900,\"temperature_2m\":17.5,\"relative_humidity_2m\":73,\"dew_point_2m\":12.6,\"pressure_msl\":1015.3,\"apparent_temperature\":17.3,\"wind_speed_10m\":1.92,\"weather_code\":61,\"precipitation\":0.00,\"snow_depth\":0.00},\"daily_units\":{\"time\":\"iso8601\",\"uv_index_max\":\"\"},\"daily\":{\"time\":[\"2026-06-27\",\"2026-06-28\",\"2026-06-29\",\"2026-06-30\",\"2026-07-01\",\"2026-07-02\",\"2026-07-03\"],\"uv_index_max\":[5.90,5.30,2.05,6.30,6.30,5.90,5.55]}}"
+    headers:
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - deflate
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Sat, 27 Jun 2026 14:36:52 GMT
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.34.2
+    method: GET
+    uri: https://geocoding-api.open-meteo.com/v1/search?name=Minsk&count=10&language=en&format=json
+  response:
+    body:
+      string: "{\"results\":[{\"id\":625144,\"name\":\"Minsk\",\"latitude\":53.90019,\"longitude\":27.56653,\"elevation\":222.0,\"feature_code\":\"PPLC\",\"country_code\":\"BY\",\"admin1_id\":625143,\"timezone\":\"Europe/Minsk\",\"population\":1742124,\"country_id\":630336,\"country\":\"Belarus\",\"admin1\":\"Minsk
+        City\"},{\"id\":1498696,\"name\":\"Minsk\",\"latitude\":57.0989,\"longitude\":93.33372,\"elevation\":232.0,\"feature_code\":\"PPL\",\"country_code\":\"RU\",\"admin1_id\":1502020,\"timezone\":\"Asia/Krasnoyarsk\",\"country_id\":2017370,\"country\":\"Russia\",\"admin1\":\"Krasnoyarsk
+        Krai\"},{\"id\":529528,\"name\":\"Minskiy\",\"latitude\":43.68944,\"longitude\":43.76972,\"elevation\":284.0,\"feature_code\":\"PPL\",\"country_code\":\"RU\",\"admin1_id\":554667,\"timezone\":\"Europe/Moscow\",\"country_id\":2017370,\"country\":\"Russia\",\"admin1\":\"Kabardino-Balkariya
+        Republic\"},{\"id\":1498697,\"name\":\"Minsk-Deoryanskoye\",\"latitude\":56.83333,\"longitude\":74.88333,\"elevation\":146.0,\"feature_code\":\"PPL\",\"country_code\":\"RU\",\"admin1_id\":1496152,\"timezone\":\"Asia/Omsk\",\"country_id\":2017370,\"country\":\"Russia\",\"admin1\":\"Omsk
+        Oblast\"},{\"id\":1520925,\"name\":\"Minskoye\",\"latitude\":52.10725,\"longitude\":72.2027,\"elevation\":309.0,\"feature_code\":\"PPL\",\"country_code\":\"KZ\",\"admin1_id\":1518003,\"timezone\":\"Asia/Almaty\",\"country_id\":1522867,\"country\":\"Kazakhstan\",\"admin1\":\"Aqmola\"},{\"id\":2019958,\"name\":\"Minskiy\",\"latitude\":54.36667,\"longitude\":102.38333,\"elevation\":567.0,\"feature_code\":\"PPL\",\"country_code\":\"RU\",\"admin1_id\":2023468,\"timezone\":\"Asia/Irkutsk\",\"country_id\":2017370,\"country\":\"Russia\",\"admin1\":\"Irkutsk
+        Oblast\"},{\"id\":11507753,\"name\":\"Minskiy\",\"latitude\":53.53852,\"longitude\":65.76788,\"elevation\":195.0,\"feature_code\":\"PPL\",\"country_code\":\"KZ\",\"admin1_id\":1521671,\"timezone\":\"Asia/Qostanay\",\"country_id\":1522867,\"country\":\"Kazakhstan\",\"admin1\":\"Kostanay\"},{\"id\":12262690,\"name\":\"Minskip\",\"latitude\":54.07962,\"longitude\":-1.40424,\"elevation\":30.0,\"feature_code\":\"PPL\",\"country_code\":\"GB\",\"admin1_id\":6269131,\"admin2_id\":2641209,\"admin3_id\":7290608,\"admin4_id\":7300751,\"timezone\":\"Europe/London\",\"country_id\":2635167,\"country\":\"United
+        Kingdom\",\"admin1\":\"England\",\"admin2\":\"North Yorkshire\",\"admin3\":\"Harrogate
+        District\",\"admin4\":\"Boroughbridge\"},{\"id\":764679,\"name\":\"Mi\u0144sk
+        Mazowiecki\",\"latitude\":52.17935,\"longitude\":21.57251,\"elevation\":150.0,\"feature_code\":\"PPLA2\",\"country_code\":\"PL\",\"admin1_id\":858787,\"admin2_id\":7530877,\"admin3_id\":7532581,\"timezone\":\"Europe/Warsaw\",\"population\":37027,\"country_id\":798544,\"country\":\"Poland\",\"admin1\":\"Mazovia\",\"admin2\":\"Mi\u0144sk
+        County\",\"admin3\":\"Mi\u0144sk Mazowiecki\"},{\"id\":526415,\"name\":\"Minskoye\",\"latitude\":57.69351,\"longitude\":41.02806,\"elevation\":148.0,\"feature_code\":\"PPL\",\"country_code\":\"RU\",\"admin1_id\":543871,\"timezone\":\"Europe/Moscow\",\"country_id\":2017370,\"country\":\"Russia\",\"admin1\":\"Kostroma
+        Oblast\"}],\"generationtime_ms\":0.5605221}"
+    headers:
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - deflate
+      Content-Length:
+      - '858'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Sat, 27 Jun 2026 14:36:52 GMT
+      X-Encoding-Time:
+      - 0.004422664642333984 ms
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.34.2
+    method: GET
+    uri: https://api.open-meteo.com/v1/forecast?latitude=53.90019&longitude=27.56653&current=temperature_2m%2Crelative_humidity_2m%2Cdew_point_2m%2Cpressure_msl%2Capparent_temperature%2Cwind_speed_10m%2Cweather_code%2Cprecipitation%2Csnow_depth&daily=uv_index_max&timezone=auto&wind_speed_unit=ms
+  response:
+    body:
+      string: "{\"latitude\":53.900345,\"longitude\":27.561417,\"generationtime_ms\":0.1533031463623047,\"utc_offset_seconds\":10800,\"timezone\":\"Europe/Minsk\",\"timezone_abbreviation\":\"GMT+3\",\"elevation\":226.0,\"current_units\":{\"time\":\"iso8601\",\"interval\":\"seconds\",\"temperature_2m\":\"\xB0C\",\"relative_humidity_2m\":\"%\",\"dew_point_2m\":\"\xB0C\",\"pressure_msl\":\"hPa\",\"apparent_temperature\":\"\xB0C\",\"wind_speed_10m\":\"m/s\",\"weather_code\":\"wmo
+        code\",\"precipitation\":\"mm\",\"snow_depth\":\"m\"},\"current\":{\"time\":\"2026-06-27T17:30\",\"interval\":900,\"temperature_2m\":28.8,\"relative_humidity_2m\":33,\"dew_point_2m\":10.9,\"pressure_msl\":1018.3,\"apparent_temperature\":27.5,\"wind_speed_10m\":3.10,\"weather_code\":0,\"precipitation\":0.00,\"snow_depth\":0.00},\"daily_units\":{\"time\":\"iso8601\",\"uv_index_max\":\"\"},\"daily\":{\"time\":[\"2026-06-27\",\"2026-06-28\",\"2026-06-29\",\"2026-06-30\",\"2026-07-01\",\"2026-07-02\",\"2026-07-03\"],\"uv_index_max\":[5.80,6.35,6.45,6.40,4.20,2.75,6.25]}}"
+    headers:
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - deflate
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Sat, 27 Jun 2026 14:36:53 GMT
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+version: 1
