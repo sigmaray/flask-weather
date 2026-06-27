@@ -12,9 +12,16 @@
 {% block details_table %}
 <div class="d-flex justify-content-between align-items-center mb-3 mt-3">
     <div>
-        <h1 class="mb-1">{{ city.name }}</h1>
+        <h1 class="mb-1">{{ city.display_name }}</h1>
         <p class="text-muted mb-0">
+            {% if city.has_name_location() %}
+            {{ city.name }}, {{ city.country }}
+            {% elif city.has_coordinate_location() %}
             {{ "%.4f"|format(city.latitude) }}, {{ "%.4f"|format(city.longitude) }}
+            {% if city.geocoded_name %}
+            · {{ city.geocoded_name }}
+            {% endif %}
+            {% endif %}
             · Check every
             {% if city.check_interval_minutes %}
             {{ city.check_interval_minutes }} min (custom)

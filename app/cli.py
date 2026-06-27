@@ -5,6 +5,7 @@ from flask import Flask
 
 from app.extensions import db
 from app.models import User
+from app.services.city_service import seed_test_cities
 from app.services.user_service import clear_users_table, seed_admin_user
 
 
@@ -50,6 +51,12 @@ def register_cli(app: Flask) -> None:
             raise SystemExit(1)
 
         _, message = clear_users_table()
+        click.echo(message)
+
+    @app.cli.command("cities-seed")
+    def cities_seed() -> None:
+        """Create test cities for local development."""
+        _, message = seed_test_cities()
         click.echo(message)
 
     @app.cli.command("users-seed")

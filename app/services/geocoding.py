@@ -5,6 +5,7 @@ from typing import Any
 import requests
 
 OPEN_METEO_GEOCODING_URL = "https://geocoding-api.open-meteo.com/v1/search"
+NOMINATIM_REVERSE_URL = "https://nominatim.openstreetmap.org/reverse"
 
 
 class GeocodingError(Exception):
@@ -29,6 +30,32 @@ def geocode_city(city: str, country: str) -> tuple[str, float, float]:
 
     display_name = f"{match['name']}, {match['country']}"
     return display_name, float(match["latitude"]), float(match["longitude"])
+
+
+def reverse_geocode(latitude: float, longitude: float) -> str:
+    """Resolve coordinates to a display name."""
+    try:
+        response = requests.get(
+            NOMINATIM_REVERSE_URL,
+            params={
+                "lat": str(latitude),
+                "lon": str(longitude),
+                "format": "json",
+            },
+            headers={"User-Agent": "flask-weather/1.0"},
+            timeout=15,
+        )
+        response.raise_for_status()
+    except requests.RequestException as exc:
+        raise GeocodingError(str(exc)) from exc
+
+    data: dict[str, Any] = response.json()
+    display_name = data.get("display_name")
+    if not display_name:
+        raise GeocodingError(
+            f"Could not resolve coordinates ({latitude}, {longitude})."
+        )
+    return str(display_name)
 
 
 def _search(name: str) -> list[dict[str, Any]]:

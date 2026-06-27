@@ -95,20 +95,24 @@ class CityAdmin(SecureModelView):
     column_list = [
         "id",
         "name",
+        "country",
+        "geocoded_name",
         "latitude",
         "longitude",
         "check_interval_minutes",
         "last_checked_at",
         "created_at",
     ]
-    column_searchable_list = ["name"]
-    column_filters = ["name"]
+    column_searchable_list = ["name", "country", "geocoded_name"]
+    column_filters = ["name", "country"]
     column_sortable_list = ["id", "name", "created_at", "last_checked_at"]
     column_default_sort = ("id", False)
 
     column_labels = {
         "id": "ID",
         "name": "Name",
+        "country": "Country",
+        "geocoded_name": "Geocoded name",
         "latitude": "Latitude",
         "longitude": "Longitude",
         "check_interval_minutes": "Check interval (min)",
@@ -116,17 +120,89 @@ class CityAdmin(SecureModelView):
         "created_at": "Created",
     }
 
-    form_columns = ["name", "latitude", "longitude", "check_interval_minutes"]
+    form_columns = [
+        "name",
+        "country",
+        "latitude",
+        "longitude",
+        "check_interval_minutes",
+    ]
+    form_excluded_columns = ["geocoded_name"]
     form_args = {
-        "name": {"label": "Name"},
-        "latitude": {"label": "Latitude"},
-        "longitude": {"label": "Longitude"},
+        "name": {"label": "Name", "validators": [validators.Optional()]},
+        "country": {"label": "Country", "validators": [validators.Optional()]},
+        "latitude": {"label": "Latitude", "validators": [validators.Optional()]},
+        "longitude": {"label": "Longitude", "validators": [validators.Optional()]},
         "check_interval_minutes": {"label": "Check interval (minutes)"},
     }
 
     can_view_details = True
     page_size = 25
     details_template = "admin/city_detail.html"
+
+    def validate_form(self, form: Any) -> bool:
+        if not super().validate_form(form):
+            return False
+
+        has_name = bool(form.name.data and str(form.name.data).strip())
+        has_country = bool(form.country.data and str(form.country.data).strip())
+        has_latitude = form.latitude.data not in (None, "")
+        has_longitude = form.longitude.data not in (None, "")
+
+        has_name_location = has_name and has_country
+        has_coordinate_location = has_latitude and has_longitude
+
+        if has_name_location and has_coordinate_location:
+            flash(
+                "Specify either name and country, or latitude and longitude.",
+                "error",
+            )
+            return False
+
+        if not has_name_location and not has_coordinate_location:
+            flash(
+                "Specify either name and country, or latitude and longitude.",
+                "error",
+            )
+            return False
+
+        if has_name != has_country:
+            flash("Name and country must both be provided.", "error")
+            return False
+
+        if has_latitude != has_longitude:
+            flash("Latitude and longitude must both be provided.", "error")
+            return False
+
+        return True
+
+    def on_model_change(self, form: Any, model: City, is_created: bool) -> None:
+        from app.services.geocoding import GeocodingError, reverse_geocode
+
+        has_name = bool(form.name.data and str(form.name.data).strip())
+        has_country = bool(form.country.data and str(form.country.data).strip())
+        has_latitude = form.latitude.data not in (None, "")
+        has_longitude = form.longitude.data not in (None, "")
+
+        if has_name and has_country:
+            model.name = str(form.name.data).strip()
+            model.country = str(form.country.data).strip()
+            model.latitude = None
+            model.longitude = None
+            model.geocoded_name = None
+            return
+
+        if has_latitude and has_longitude:
+            model.latitude = float(form.latitude.data)
+            model.longitude = float(form.longitude.data)
+            model.name = None
+            model.country = None
+            try:
+                model.geocoded_name = reverse_geocode(model.latitude, model.longitude)
+            except GeocodingError as exc:
+                raise validators.ValidationError(
+                    f"Failed to geocode coordinates: {exc}"
+                ) from exc
 
     @expose("/details/", methods=("GET",))
     def details_view(self) -> Any:
@@ -249,6 +325,14 @@ class ToolsAdmin(SecureBaseView):
 
         records = fetch_due_cities()
         flash(f"Fetched weather for {len(records)} cities.", "success")
+        return redirect(url_for(".index"))
+
+    @expose("/seed-cities/", methods=["POST"])
+    def seed_cities(self) -> Response:
+        from app.services.city_service import seed_test_cities
+
+        category, message = seed_test_cities()
+        flash(message, category)
         return redirect(url_for(".index"))
 
     @expose("/seed-users/", methods=["POST"])

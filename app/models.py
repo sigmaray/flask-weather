@@ -49,9 +49,11 @@ class City(db.Model):  # type: ignore[name-defined,misc]
     __tablename__ = "cities"
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(120), nullable=False)
-    latitude = db.Column(db.Float, nullable=False)
-    longitude = db.Column(db.Float, nullable=False)
+    name = db.Column(db.String(120), nullable=True)
+    country = db.Column(db.String(120), nullable=True)
+    latitude = db.Column(db.Float, nullable=True)
+    longitude = db.Column(db.Float, nullable=True)
+    geocoded_name = db.Column(db.String(200), nullable=True)
     check_interval_minutes = db.Column(db.Integer, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     last_checked_at = db.Column(db.DateTime, nullable=True)
@@ -63,13 +65,31 @@ class City(db.Model):  # type: ignore[name-defined,misc]
         order_by="desc(WeatherRecord.recorded_at)",
     )
 
+    def has_name_location(self) -> bool:
+        return bool(self.name and self.country)
+
+    def has_coordinate_location(self) -> bool:
+        return self.latitude is not None and self.longitude is not None
+
+    @property
+    def display_name(self) -> str:
+        if self.name and self.country:
+            return f"{self.name}, {self.country}"
+        if self.geocoded_name:
+            return str(self.geocoded_name)
+        if self.has_coordinate_location():
+            return f"{self.latitude:.4f}, {self.longitude:.4f}"
+        if self.name:
+            return str(self.name)
+        return "Unknown"
+
     def effective_interval_minutes(self) -> int:
         if self.check_interval_minutes is not None:
             return int(self.check_interval_minutes)
         return int(AppSettings.get_singleton().default_check_interval_minutes)
 
     def __repr__(self) -> str:
-        return f"<City {self.name!r}>"
+        return f"<City {self.display_name!r}>"
 
 
 class WeatherRecord(db.Model):  # type: ignore[name-defined,misc]

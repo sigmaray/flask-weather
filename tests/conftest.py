@@ -62,6 +62,28 @@ def auth_client(client: FlaskClient, user: User) -> FlaskClient:
 
 
 @pytest.fixture
+def mock_geocoding() -> Generator[None, None, None]:
+    from app.services.geocoding import GeocodingError
+
+    coords: dict[tuple[str, str], tuple[str, float, float]] = {
+        ("Berlin", "Germany"): ("Berlin, Germany", 52.52, 13.405),
+        ("Paris", "France"): ("Paris, France", 48.8566, 2.3522),
+        ("London", "United Kingdom"): ("London, United Kingdom", 51.5074, -0.1278),
+        ("Tokyo", "Japan"): ("Tokyo, Japan", 35.6762, 139.6503),
+        ("New York", "United States"): ("New York, United States", 40.7128, -74.0060),
+    }
+
+    def fake_geocode(city: str, country: str) -> tuple[str, float, float]:
+        key = (city, country)
+        if key not in coords:
+            raise GeocodingError(f"Could not find {city!r} in {country!r}.")
+        return coords[key]
+
+    with patch("app.services.weather.geocode_city", side_effect=fake_geocode):
+        yield
+
+
+@pytest.fixture
 def mock_weather_api() -> Generator[None, None, None]:
     response_data = {
         "current": {

@@ -7,6 +7,7 @@ import requests
 
 from app.extensions import db
 from app.models import City, WeatherRecord
+from app.services.geocoding import GeocodingError, geocode_city
 
 OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast"
 
@@ -15,10 +16,29 @@ class WeatherFetchError(Exception):
     pass
 
 
+def _resolve_forecast_coordinates(city: City) -> tuple[float, float]:
+    if city.has_name_location():
+        assert city.name is not None
+        assert city.country is not None
+        try:
+            _, latitude, longitude = geocode_city(city.name, city.country)
+        except GeocodingError as exc:
+            raise WeatherFetchError(str(exc)) from exc
+        return latitude, longitude
+
+    if city.has_coordinate_location():
+        assert city.latitude is not None
+        assert city.longitude is not None
+        return city.latitude, city.longitude
+
+    raise WeatherFetchError("City has no location data.")
+
+
 def fetch_weather_for_city(city: City) -> WeatherRecord:
+    latitude, longitude = _resolve_forecast_coordinates(city)
     params: dict[str, str | float] = {
-        "latitude": city.latitude,
-        "longitude": city.longitude,
+        "latitude": latitude,
+        "longitude": longitude,
         "current": "temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code,precipitation,snow_depth",
         "timezone": "UTC",
     }

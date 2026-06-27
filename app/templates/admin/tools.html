@@ -27,6 +27,29 @@
             </div>
         </div>
 
+        <div class="card mb-4">
+            <div class="card-header">City seeding</div>
+            <div class="card-body">
+                <p class="card-text">
+                    Add sample cities by name and country (Berlin/Germany, Paris/France,
+                    London/United Kingdom, Tokyo/Japan, New York/United States)
+                    when the database has no cities.
+                </p>
+                <p class="text-muted mb-4">
+                    Cities in database: <strong>{{ cities_count }}</strong>.
+                </p>
+
+                <form method="post" action="{{ url_for('.seed_cities') }}" class="d-inline">
+                    <button type="submit" class="btn btn-primary">
+                        Seed test cities
+                    </button>
+                </form>
+            </div>
+            <div class="card-footer text-muted small">
+                Equivalent to the CLI command <code>flask cities-seed</code>.
+            </div>
+        </div>
+
         <div class="card">
             <div class="card-header">User seeding</div>
             <div class="card-body">

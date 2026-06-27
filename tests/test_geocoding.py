@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import pytest
 
-from app.services.geocoding import GeocodingError, geocode_city
+from app.services.geocoding import GeocodingError, geocode_city, reverse_geocode
 
 BERLIN_RESPONSE = {
     "results": [
@@ -45,3 +45,15 @@ def test_geocode_city_not_found() -> None:
 
         with pytest.raises(GeocodingError, match="Could not find"):
             geocode_city("Nowhere", "Atlantis")
+
+
+def test_reverse_geocode() -> None:
+    with patch("app.services.geocoding.requests.get") as mock_get:
+        mock_get.return_value.json.return_value = {
+            "display_name": "Berlin, Germany"
+        }
+        mock_get.return_value.raise_for_status = lambda: None
+
+        name = reverse_geocode(52.52, 13.405)
+
+    assert name == "Berlin, Germany"
