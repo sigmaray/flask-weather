@@ -9,8 +9,17 @@ export async function expectFlash(
   try {
     await expect(alert.first()).toBeVisible({ timeout });
   } catch (err) {
-    const allAlerts = await page.locator(".alert").allTextContents();
-    console.error(`Failed to find flash message matching ${message}. Found alerts:`, allAlerts);
+    if (page.isClosed()) {
+      console.error(`Failed to find flash message matching ${message}. Page is already closed.`);
+      throw err;
+    }
+
+    try {
+      const allAlerts = await page.locator(".alert").allTextContents();
+      console.error(`Failed to find flash message matching ${message}. Found alerts:`, allAlerts);
+    } catch {
+      console.error(`Failed to find flash message matching ${message}. Could not read alerts.`);
+    }
     throw err;
   }
 }

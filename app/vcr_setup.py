@@ -14,7 +14,9 @@ class _VCRContext:
 
     def start(self):
         if os.environ.get("USE_VCR") == "true":
-            self.cassette = vcr_e2e.use_cassette('e2e_weather_mocks.yaml')
+            self.cassette = vcr_e2e.use_cassette(
+                'e2e_weather_mocks.yaml', allow_playback_repeats=True
+            )
             self.cassette.__enter__()
 
     def stop(self):
