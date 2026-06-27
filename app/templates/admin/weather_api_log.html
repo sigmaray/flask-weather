@@ -43,7 +43,7 @@
                                 <pre class="bg-light p-2 small mb-2">{% for key, value in entry.server_headers.items() %}{{ key }}: {{ value }}
 {% endfor %}{% if not entry.server_headers %}(none){% endif %}</pre>
                                 <strong>Response body</strong>
-                                <pre class="bg-light p-2 small mb-0" style="max-height: 300px; overflow: auto;">{{ entry.response_body }}</pre>
+                                <pre class="bg-light p-2 small mb-0" style="max-height: 300px; overflow: auto;">{{ entry.response_body | format_http_body(entry.server_headers) }}</pre>
                             </div>
                         </details>
                     </td>

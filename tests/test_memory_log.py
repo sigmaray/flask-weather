@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 import pytest
 from flask.testing import FlaskClient
 
-from app.memory_log import get_app_errors, get_weather_api_requests
+from app.memory_log import format_http_body, get_app_errors, get_weather_api_requests
 from app.models import City
 
 
@@ -103,3 +103,52 @@ def test_weather_api_request_logged_on_failure(
     errors = get_app_errors()
     assert len(errors) == 1
     assert errors[0].source == "weather.fetch"
+
+
+def test_format_http_body_json() -> None:
+    body = '{"timezone":"Europe/Paris","current":{"temperature_2m":15.5}}'
+    formatted = format_http_body(body, {"Content-Type": "application/json"})
+    assert '"timezone": "Europe/Paris"' in formatted
+    assert '"temperature_2m": 15.5' in formatted
+
+
+def test_format_http_body_xml() -> None:
+    body = '<?xml version="1.0"?><root><item>value</item></root>'
+    formatted = format_http_body(body, {"Content-Type": "application/xml"})
+    assert "<root>" in formatted
+    assert "<item>" in formatted
+    assert "value" in formatted
+
+
+def test_format_http_body_plain_text_unchanged() -> None:
+    body = "Service Unavailable"
+    assert format_http_body(body, {"Content-Type": "text/plain"}) == body
+
+
+def test_weather_api_log_page_formats_json_body(
+    auth_client: FlaskClient,
+    mock_geocoding,
+    mock_weather_api,
+    app,
+) -> None:
+    with app.app_context():
+        city = City(name="Paris", country="France")
+        from app.extensions import db
+
+        db.session.add(city)
+        db.session.commit()
+
+        from app.services.weather import fetch_weather_for_city
+
+        fetch_weather_for_city(city)
+
+    response = auth_client.get("/admin/weather_api_log/")
+    assert response.status_code == 200
+    text = response.get_data(as_text=True)
+    assert "timezone" in text
+    assert "Europe/Paris" in text
+    formatted = format_http_body(
+        '{"timezone":"Europe/Paris"}',
+        {"Content-Type": "application/json"},
+    )
+    assert '\n  "timezone"' in formatted

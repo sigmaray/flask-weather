@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import json
 import traceback
+import xml.dom.minidom
 from collections import deque
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -41,6 +43,33 @@ def _header_dict(headers: Any) -> dict[str, str]:
     if headers is None:
         return {}
     return {str(key): str(value) for key, value in headers.items()}
+
+
+def format_http_body(body: str, headers: dict[str, str] | None = None) -> str:
+    if not body:
+        return body
+
+    content_type = ""
+    if headers:
+        content_type = headers.get("Content-Type", "").lower()
+
+    stripped = body.strip()
+
+    if "json" in content_type or stripped.startswith(("{", "[")):
+        try:
+            parsed = json.loads(stripped)
+            return json.dumps(parsed, indent=2, ensure_ascii=False)
+        except (json.JSONDecodeError, TypeError, ValueError):
+            pass
+
+    if "xml" in content_type or stripped.startswith("<?xml"):
+        try:
+            dom = xml.dom.minidom.parseString(stripped)
+            return dom.toprettyxml(indent="  ")
+        except Exception:
+            pass
+
+    return body
 
 
 def log_weather_api_request(

@@ -37,6 +37,7 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
     from app.admin import init_admin
     from app.blueprints.auth import auth_bp
     from app.cli import register_cli
+    from app.memory_log import format_http_body
     from app.scheduler import init_scheduler
     from app.services.weather_codes import weather_code_label
     from app.vcr_setup import apply_vcr_if_e2e
@@ -44,6 +45,7 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
     apply_vcr_if_e2e()
 
     app.jinja_env.filters["weather_code_label"] = weather_code_label
+    app.jinja_env.filters["format_http_body"] = format_http_body
 
     app.register_blueprint(auth_bp)
     init_admin(app)
