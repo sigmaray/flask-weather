@@ -52,7 +52,11 @@ def test_scheduler_index(auth_scheduler_client: FlaskClient, scheduler_app: Flas
     assert response.status_code == 200
     assert b"Background Tasks" in response.data
     assert b"fetch_weather" in response.data
-    assert b"Running" in response.data or b"Paused" in response.data
+    assert (
+        b"Active" in response.data
+        or b"Executing" in response.data
+        or b"Paused" in response.data
+    )
 
 
 def test_scheduler_pause_resume(auth_scheduler_client: FlaskClient, scheduler_app: Flask):

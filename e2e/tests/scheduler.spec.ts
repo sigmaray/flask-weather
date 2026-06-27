@@ -43,8 +43,8 @@ test.describe.serial("Scheduler (Background Tasks)", () => {
     await row.getByRole("button", { name: "Resume" }).click();
     await expect(page.locator(".alert-success").first()).toContainText("resumed successfully");
     
-    // Now it should show "Running" badge
-    await expect(row.getByText("Running")).toBeVisible();
+    // Now it should show "Active" badge
+    await expect(row.getByText("Active")).toBeVisible();
     await expect(row.getByRole("button", { name: "Pause" })).toBeVisible();
   });
 

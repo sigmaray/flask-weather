@@ -427,7 +427,7 @@ class WeatherMapAdmin(SecureBaseView):
 class SchedulerAdmin(SecureBaseView):
     @expose("/")
     def index(self) -> Any:
-        from app.scheduler import get_scheduler
+        from app.scheduler import get_running_job_ids, get_scheduler
 
         scheduler = get_scheduler()
         jobs = scheduler.get_jobs() if scheduler else []
@@ -435,6 +435,7 @@ class SchedulerAdmin(SecureBaseView):
         return self.render(
             "admin/scheduler.html",
             jobs=jobs,
+            running_job_ids=get_running_job_ids(),
             scheduler_enabled=scheduler is not None,
         )
 
