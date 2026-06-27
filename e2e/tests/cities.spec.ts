@@ -1,18 +1,20 @@
 import { test, expect } from "@playwright/test";
 
 import { login } from "./support/auth";
-import { expectFlash, openCityDetails, openCreateCityForm, readCitiesCount } from "./support/helpers";
+import {
+  ensureTestCitiesSeeded,
+  expectFlash,
+  openCityDetails,
+  openCreateCityForm,
+} from "./support/helpers";
+
+test.describe.configure({ mode: "serial" });
 
 test.describe("Cities", () => {
   test.beforeAll(async ({ browser }) => {
     const page = await browser.newPage();
     await login(page);
-    await page.goto("/admin/tools/");
-    if ((await readCitiesCount(page)) === "0") {
-      await page.getByRole("button", { name: "Seed test cities" }).click();
-      await expectFlash(page, "Added 10 test cities.");
-    }
-
+    await ensureTestCitiesSeeded(page);
     await page.close();
   });
 
@@ -83,13 +85,10 @@ test.describe("Cities", () => {
 
     await expect(row.getByRole("cell", { name: "45", exact: true })).toBeVisible();
   });
-});
 
-test.describe("Weather fetch", () => {
   test("fetch now on city detail stores a weather record", async ({ page }) => {
     test.setTimeout(60_000);
 
-    await login(page);
     await openCityDetails(page, "Berlin");
 
     const historyRows = page.locator(".weather-history-table tbody tr");

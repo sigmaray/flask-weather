@@ -4,6 +4,7 @@ import { login } from "./support/auth";
 import {
   acceptNextConfirm,
   clearAllCities,
+  ensureTestCitiesSeeded,
   expectFlash,
   goToTools,
   openCityDetails,
@@ -49,7 +50,7 @@ test.describe.serial("Tools", () => {
 
   test("clears weather records after confirmation", async ({ page }) => {
     if ((await readWeatherRecordsCount(page)) === "0") {
-      await page.getByRole("link", { name: "Cities", exact: true }).click();
+      await ensureTestCitiesSeeded(page);
       await openCityDetails(page, "Berlin");
       await page.getByRole("button", { name: "Fetch now" }).click();
       await expectFlash(page, "Weather data fetched.", 30_000);

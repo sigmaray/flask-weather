@@ -39,6 +39,14 @@ export async function readWeatherRecordsCount(page: Page): Promise<string> {
   return value?.trim() ?? "0";
 }
 
+export async function ensureTestCitiesSeeded(page: Page): Promise<void> {
+  await page.goto("/admin/tools/");
+  if ((await readCitiesCount(page)) === "0") {
+    await page.getByRole("button", { name: "Seed test cities" }).click();
+    await expectFlash(page, "Added 10 test cities.");
+  }
+}
+
 export async function clearAllCities(page: Page): Promise<void> {
   await page.goto("/admin/tools/");
 
@@ -59,8 +67,11 @@ export async function clearAllCities(page: Page): Promise<void> {
 }
 
 export async function openCityDetails(page: Page, cityName: string): Promise<void> {
+  await page.goto("/admin/admin_cities/");
   await page.locator('input[name="search"]').fill(cityName);
   await page.getByRole("button", { name: "Search" }).click();
-  await page.getByRole("row", { name: new RegExp(cityName) }).getByTitle("View Record").click();
+  const row = page.getByRole("row", { name: new RegExp(cityName) });
+  await expect(row).toBeVisible();
+  await row.getByTitle("View Record").click();
   await expect(page).toHaveURL(/\/admin\/admin_cities\/details/);
 }
