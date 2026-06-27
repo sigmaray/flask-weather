@@ -201,9 +201,11 @@ def test_city_detail_with_records(auth_client: FlaskClient) -> None:
         db.session.add(record)
         db.session.commit()
         city_id = city.id
+        record_id = record.id
 
     response = auth_client.get(f"/admin/admin_cities/details/?id={city_id}")
     assert response.status_code == 200
+    assert f"/admin/weather_records/details/?id={record_id}".encode() in response.data
     assert b"List" in response.data
     assert b"Create" in response.data
     assert b"Edit" in response.data

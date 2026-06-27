@@ -5,6 +5,8 @@
 <style>
     .chart-container { position: relative; height: 300px; margin-bottom: 2rem; }
     .weather-history-table { font-size: 0.875rem; }
+    .weather-history-table tbody tr { cursor: pointer; }
+    .weather-history-table tbody tr:hover { background-color: rgba(0, 0, 0, 0.04); }
 </style>
 {% endblock %}
 
@@ -57,12 +59,14 @@
     </thead>
     <tbody>
         {% for record in records %}
-        <tr>
+        <tr class="weather-history-row" data-href="{{ url_for('weather_records.details_view', id=record.id) }}" role="link" tabindex="0" title="View weather record">
             <td>
-                {{ record.display_time.strftime('%Y-%m-%d %H:%M') }}
-                {% if record.timezone %}
-                <span class="text-muted">{{ record.timezone }}</span>
-                {% endif %}
+                <a href="{{ url_for('weather_records.details_view', id=record.id) }}" class="text-body">
+                    {{ record.display_time.strftime('%Y-%m-%d %H:%M') }}
+                    {% if record.timezone %}
+                    <span class="text-muted">{{ record.timezone }}</span>
+                    {% endif %}
+                </a>
             </td>
             <td>{{ record.weather_code | weather_code_label }}</td>
             <td>{{ "%.1f"|format(record.temperature_c) }}</td>
@@ -106,6 +110,22 @@
 {% if records %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
+document.querySelectorAll('.weather-history-row').forEach((row) => {
+    const href = row.dataset.href;
+    row.addEventListener('click', (event) => {
+        if (event.target.closest('a')) {
+            return;
+        }
+        window.location.href = href;
+    });
+    row.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            window.location.href = href;
+        }
+    });
+});
+
 const chartData = {{ chart_data_json | safe }};
 
 function makeChart(canvasId, label, data, color) {
