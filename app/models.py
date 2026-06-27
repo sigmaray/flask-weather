@@ -31,7 +31,7 @@ class AppSettings(db.Model):  # type: ignore[name-defined,misc]
     __tablename__ = "app_settings"
 
     id = db.Column(db.Integer, primary_key=True)
-    default_check_interval_minutes = db.Column(db.Integer, nullable=False, default=60)
+    default_check_interval_minutes = db.Column(db.Integer, nullable=False, default=1)
     updated_at = db.Column(
         db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
     )
@@ -40,7 +40,7 @@ class AppSettings(db.Model):  # type: ignore[name-defined,misc]
     def get_singleton(cls) -> AppSettings:
         settings = db.session.get(cls, 1)
         if settings is None:
-            settings = cls(id=1, default_check_interval_minutes=60)
+            settings = cls(id=1, default_check_interval_minutes=1)
             db.session.add(settings)
             db.session.commit()
         return settings
