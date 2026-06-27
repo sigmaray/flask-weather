@@ -7,6 +7,7 @@ from flask import flash, redirect, request, url_for
 from flask_admin import expose
 from flask_admin.model.helpers import get_mdict_item_or_list
 from flask_login import current_user
+from markupsafe import Markup, escape
 from werkzeug.wrappers.response import Response
 from wtforms import PasswordField, validators
 
@@ -253,6 +254,13 @@ class CityAdmin(SecureModelView):
         return redirect(self.get_url(".details_view", id=city_id))
 
 
+def _weather_record_city_link(_view: Any, _context: Any, model: Any, _name: str) -> Markup:
+    if model.city is None:
+        return Markup(f"<span>#{model.city_id}</span>")
+    city_url = url_for("admin_cities.details_view", id=model.city.id)
+    return Markup(f'<a href="{city_url}">{escape(model.city.display_name)}</a>')
+
+
 class WeatherRecordAdmin(SecureModelView):
     column_list = [
         "id",
@@ -273,6 +281,13 @@ class WeatherRecordAdmin(SecureModelView):
     column_filters = ["city_id", "recorded_at"]
     column_sortable_list = ["id", "recorded_at", "temperature_c"]
     column_default_sort = ("recorded_at", True)
+
+    column_formatters = {
+        "city_id": _weather_record_city_link,
+    }
+    column_formatters_detail = {
+        "city_id": _weather_record_city_link,
+    }
 
     column_labels = {
         "id": "ID",
