@@ -229,6 +229,59 @@ def test_fetch_weather_tools_by_name_country(
         assert len(records) == 1
 
 
+def test_weather_map_page(
+    auth_client: FlaskClient, mock_geocoding: None
+) -> None:
+    with auth_client.application.app_context():
+        city = City(name="Paris", country="France")
+        db.session.add(city)
+        db.session.commit()
+        db.session.add(
+            WeatherRecord(
+                city_id=city.id,
+                recorded_at=datetime(2026, 6, 27, 12, 0),
+                observed_at_local=datetime(2026, 6, 27, 14, 0),
+                timezone="Europe/Paris",
+                temperature_c=22.4,
+                weather_code=1,
+            )
+        )
+        db.session.commit()
+        assert city.latitude is None
+
+    response = auth_client.get("/admin/weather_map/")
+    assert response.status_code == 200
+    assert b"Weather map" in response.data
+    assert b"weatherMap" in response.data
+    assert b"Paris, France" in response.data
+    assert b"Mainly clear" in response.data
+    assert b'"latitude": 48.8566' in response.data
+
+    with auth_client.application.app_context():
+        city = City.query.filter_by(name="Paris", country="France").first()
+        assert city is not None
+        assert city.latitude == 48.8566
+        assert city.longitude == 2.3522
+
+
+def test_fetch_weather_persists_coordinates(
+    auth_client: FlaskClient, mock_weather_api: None, mock_geocoding: None
+) -> None:
+    with auth_client.application.app_context():
+        city = City(name="Paris", country="France")
+        db.session.add(city)
+        db.session.commit()
+        city_id = city.id
+
+    response = auth_client.post("/admin/tools/fetch-weather/", follow_redirects=True)
+    assert b"Fetched weather for 1 cities" in response.data
+    with auth_client.application.app_context():
+        city = db.session.get(City, city_id)
+        assert city is not None
+        assert city.latitude == 48.8566
+        assert city.longitude == 2.3522
+
+
 def test_clear_cities_tools(auth_client: FlaskClient) -> None:
     with auth_client.application.app_context():
         db.session.add(City(name="Berlin", country="Germany"))

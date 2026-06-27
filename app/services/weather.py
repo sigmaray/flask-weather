@@ -17,22 +17,33 @@ class WeatherFetchError(Exception):
     pass
 
 
-def _resolve_forecast_coordinates(city: City) -> tuple[float, float]:
-    if city.has_name_location():
-        assert city.name is not None
-        assert city.country is not None
-        try:
-            _, latitude, longitude = geocode_city(city.name, city.country)
-        except GeocodingError as exc:
-            raise WeatherFetchError(str(exc)) from exc
-        return latitude, longitude
-
+def resolve_city_coordinates(city: City) -> tuple[float, float]:
+    """Return latitude and longitude for a city, geocoding by name if needed."""
     if city.has_coordinate_location():
         assert city.latitude is not None
         assert city.longitude is not None
         return city.latitude, city.longitude
 
-    raise WeatherFetchError("City has no location data.")
+    if city.has_name_location():
+        assert city.name is not None
+        assert city.country is not None
+        _, latitude, longitude = geocode_city(city.name, city.country)
+        return latitude, longitude
+
+    raise GeocodingError("City has no location data.")
+
+
+def ensure_city_coordinates(city: City) -> tuple[float, float]:
+    """Resolve coordinates and persist them on the city when missing."""
+    if city.has_coordinate_location():
+        assert city.latitude is not None
+        assert city.longitude is not None
+        return city.latitude, city.longitude
+
+    latitude, longitude = resolve_city_coordinates(city)
+    city.latitude = latitude
+    city.longitude = longitude
+    return latitude, longitude
 
 
 def _parse_local_observation_time(current: dict[str, Any]) -> datetime | None:
@@ -62,7 +73,10 @@ def _daily_uv_index(data: dict[str, Any]) -> float | None:
 
 
 def fetch_weather_for_city(city: City) -> WeatherRecord:
-    latitude, longitude = _resolve_forecast_coordinates(city)
+    try:
+        latitude, longitude = ensure_city_coordinates(city)
+    except GeocodingError as exc:
+        raise WeatherFetchError(str(exc)) from exc
     params: dict[str, str | float] = {
         "latitude": latitude,
         "longitude": longitude,

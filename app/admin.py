@@ -9,6 +9,7 @@ from app.admin_views import (
     CityAdmin,
     ToolsAdmin,
     UserAdmin,
+    WeatherMapAdmin,
     WeatherRecordAdmin,
 )
 from app.extensions import db
@@ -41,3 +42,4 @@ def init_admin(app: Flask) -> None:
             endpoint="app_settings",
         )
     )
+    admin.add_view(WeatherMapAdmin(name="Map", endpoint="weather_map"))

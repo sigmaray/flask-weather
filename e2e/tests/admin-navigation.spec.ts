@@ -29,6 +29,10 @@ test.describe("Admin navigation", () => {
     await expect(
       page.getByRole("columnheader", { name: /Default check interval/ }),
     ).toBeVisible();
+
+    await page.getByRole("link", { name: "Map", exact: true }).click();
+    await expect(page).toHaveURL(/\/admin\/weather_map/);
+    await expect(page.getByRole("heading", { name: "Weather map" })).toBeVisible();
   });
 
   test("authenticated root redirects to cities list", async ({ page }) => {

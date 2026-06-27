@@ -13,6 +13,9 @@ from wtforms import PasswordField, validators
 from app.admin_auth import SecureBaseView, SecureModelView
 from app.extensions import db
 from app.models import AppSettings, City
+from app.services.geocoding import GeocodingError
+from app.services.weather import ensure_city_coordinates
+from app.services.weather_codes import weather_code_label
 
 
 def _city_weather_context(city: City) -> dict[str, Any]:
@@ -377,3 +380,50 @@ class ToolsAdmin(SecureBaseView):
         category, message = clear_users_table()
         flash(message, category)
         return redirect(url_for(".index"))
+
+
+class WeatherMapAdmin(SecureBaseView):
+    @expose("/")
+    def index(self) -> Any:
+        cities_with_weather = (
+            City.query.join(City.weather_records)
+            .distinct()
+            .order_by(City.id.asc())
+            .all()
+        )
+
+        map_points: list[dict[str, Any]] = []
+        records_without_coordinates = 0
+        for city in cities_with_weather:
+            if not city.weather_records:
+                continue
+
+            latest = city.weather_records[0]
+            try:
+                latitude, longitude = ensure_city_coordinates(city)
+            except GeocodingError:
+                records_without_coordinates += 1
+                continue
+
+            map_points.append(
+                {
+                    "city_id": city.id,
+                    "city_name": city.display_name,
+                    "latitude": latitude,
+                    "longitude": longitude,
+                    "temperature_c": latest.temperature_c,
+                    "weather_label": weather_code_label(latest.weather_code),
+                    "recorded_at": latest.display_time.strftime("%Y-%m-%d %H:%M"),
+                    "details_url": url_for("admin_cities.details_view", id=city.id),
+                }
+            )
+
+        db.session.commit()
+
+        return self.render(
+            "admin/weather_map.html",
+            map_points=map_points,
+            records_with_coordinates=len(map_points),
+            records_without_coordinates=records_without_coordinates,
+            total_records=len(cities_with_weather),
+        )
