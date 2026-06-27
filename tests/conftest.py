@@ -86,14 +86,22 @@ def mock_geocoding() -> Generator[None, None, None]:
 @pytest.fixture
 def mock_weather_api() -> Generator[None, None, None]:
     response_data = {
+        "timezone": "Europe/Paris",
         "current": {
+            "time": "2026-06-27T14:30",
             "temperature_2m": 15.5,
             "relative_humidity_2m": 60,
+            "dew_point_2m": 7.8,
+            "pressure_msl": 1013.2,
+            "apparent_temperature": 14.2,
             "wind_speed_10m": 3.2,
             "weather_code": 1,
             "precipitation": 0.0,
             "snow_depth": 0.12,
-        }
+        },
+        "daily": {
+            "uv_index_max": [5.5],
+        },
     }
     with patch("app.services.weather.requests.get") as mock_get:
         mock_get.return_value.json.return_value = response_data

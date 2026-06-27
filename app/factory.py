@@ -36,6 +36,9 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
     from app.blueprints.auth import auth_bp
     from app.cli import register_cli
     from app.scheduler import init_scheduler
+    from app.services.weather_codes import weather_code_label
+
+    app.jinja_env.filters["weather_code_label"] = weather_code_label
 
     app.register_blueprint(auth_bp)
     init_admin(app)

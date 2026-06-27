@@ -19,11 +19,12 @@ def _city_weather_context(city: City) -> dict[str, Any]:
     records = list(city.weather_records)[:100]
     chronological = list(reversed(records))
     chart_data = {
-        "labels": [r.recorded_at.strftime("%Y-%m-%d %H:%M") for r in chronological],
+        "labels": [r.display_time.strftime("%Y-%m-%d %H:%M") for r in chronological],
         "temperatures": [r.temperature_c for r in chronological],
         "humidity": [r.humidity_percent for r in chronological],
         "wind": [r.wind_speed_ms for r in chronological],
         "snow_depth": [r.snow_depth_m for r in chronological],
+        "pressure": [r.pressure_mmhg for r in chronological],
     }
     return {
         "city": city,
@@ -256,10 +257,15 @@ class WeatherRecordAdmin(SecureModelView):
         "id",
         "city_id",
         "recorded_at",
+        "observed_at_local",
         "temperature_c",
+        "dew_point_c",
         "humidity_percent",
+        "pressure_mmhg",
         "wind_speed_ms",
+        "apparent_temperature_c",
         "weather_code",
+        "uv_index",
         "precipitation_mm",
         "snow_depth_m",
     ]
@@ -270,11 +276,16 @@ class WeatherRecordAdmin(SecureModelView):
     column_labels = {
         "id": "ID",
         "city_id": "City",
-        "recorded_at": "Recorded at",
+        "recorded_at": "Recorded at (UTC)",
+        "observed_at_local": "Observed at (local)",
         "temperature_c": "Temperature (°C)",
+        "dew_point_c": "Dew point (°C)",
         "humidity_percent": "Humidity (%)",
+        "pressure_mmhg": "Pressure (mmHg)",
         "wind_speed_ms": "Wind speed (m/s)",
+        "apparent_temperature_c": "Feels like (°C)",
         "weather_code": "Weather code",
+        "uv_index": "UV index (daily max)",
         "precipitation_mm": "Precipitation (mm)",
         "snow_depth_m": "Snow depth (m)",
     }

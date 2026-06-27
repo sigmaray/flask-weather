@@ -154,9 +154,16 @@ def test_city_detail_with_records(auth_client: FlaskClient) -> None:
         record = WeatherRecord(
             city_id=city.id,
             recorded_at=datetime(2026, 1, 1, 12, 0),
+            observed_at_local=datetime(2026, 1, 1, 13, 0),
+            timezone="Europe/Berlin",
             temperature_c=10.0,
+            dew_point_c=2.0,
             humidity_percent=50.0,
+            pressure_mmhg=760.0,
             wind_speed_ms=2.0,
+            apparent_temperature_c=8.5,
+            weather_code=1,
+            uv_index=3.0,
             snow_depth_m=0.05,
         )
         db.session.add(record)
@@ -171,6 +178,8 @@ def test_city_detail_with_records(auth_client: FlaskClient) -> None:
     assert b"Details" in response.data
     assert b"Berlin" in response.data
     assert b"10.0" in response.data
+    assert b"Mainly clear" in response.data
+    assert b"pressureChart" in response.data
     assert b"temperatureChart" in response.data
     assert b"snowChart" in response.data
 
@@ -193,8 +202,15 @@ def test_fetch_weather_tools_by_coordinates(
     with auth_client.application.app_context():
         records = WeatherRecord.query.filter_by(city_id=city_id).all()
         assert len(records) == 1
-        assert records[0].temperature_c == 15.5
-        assert records[0].snow_depth_m == 0.12
+        record = records[0]
+        assert record.temperature_c == 15.5
+        assert record.snow_depth_m == 0.12
+        assert record.dew_point_c == 7.8
+        assert record.pressure_mmhg == 760.0
+        assert record.apparent_temperature_c == 14.2
+        assert record.uv_index == 5.5
+        assert record.timezone == "Europe/Paris"
+        assert record.observed_at_local == datetime(2026, 6, 27, 14, 30)
 
 
 def test_fetch_weather_tools_by_name_country(

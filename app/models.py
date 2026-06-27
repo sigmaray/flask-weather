@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import cast
 
 from flask_login import UserMixin
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -98,14 +99,24 @@ class WeatherRecord(db.Model):  # type: ignore[name-defined,misc]
     id = db.Column(db.Integer, primary_key=True)
     city_id = db.Column(db.Integer, db.ForeignKey("cities.id"), nullable=False, index=True)
     recorded_at = db.Column(db.DateTime, nullable=False, index=True)
+    observed_at_local = db.Column(db.DateTime, nullable=True)
+    timezone = db.Column(db.String(64), nullable=True)
     temperature_c = db.Column(db.Float, nullable=False)
+    dew_point_c = db.Column(db.Float, nullable=True)
     humidity_percent = db.Column(db.Float, nullable=True)
+    pressure_mmhg = db.Column(db.Float, nullable=True)
     wind_speed_ms = db.Column(db.Float, nullable=True)
+    apparent_temperature_c = db.Column(db.Float, nullable=True)
     weather_code = db.Column(db.Integer, nullable=True)
+    uv_index = db.Column(db.Float, nullable=True)
     precipitation_mm = db.Column(db.Float, nullable=True)
     snow_depth_m = db.Column(db.Float, nullable=True)
 
     city = db.relationship("City", back_populates="weather_records")
+
+    @property
+    def display_time(self) -> datetime:
+        return cast(datetime, self.observed_at_local or self.recorded_at)
 
     def __repr__(self) -> str:
         return f"<WeatherRecord city_id={self.city_id} at {self.recorded_at}>"
