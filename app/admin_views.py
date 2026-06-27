@@ -448,6 +448,9 @@ class SchedulerAdmin(SecureBaseView):
                 scheduler.pause_job(job_id)
                 flash(f"Job {job_id} paused successfully.", "success")
             except Exception as e:
+                from app.memory_log import log_app_error
+
+                log_app_error("scheduler.pause", f"Failed to pause job {job_id}: {e}", e)
                 flash(f"Failed to pause job {job_id}: {e}", "danger")
         else:
             flash("Scheduler is not enabled.", "danger")
@@ -464,6 +467,9 @@ class SchedulerAdmin(SecureBaseView):
                 scheduler.resume_job(job_id)
                 flash(f"Job {job_id} resumed successfully.", "success")
             except Exception as e:
+                from app.memory_log import log_app_error
+
+                log_app_error("scheduler.resume", f"Failed to resume job {job_id}: {e}", e)
                 flash(f"Failed to resume job {job_id}: {e}", "danger")
         else:
             flash("Scheduler is not enabled.", "danger")
@@ -480,8 +486,33 @@ class SchedulerAdmin(SecureBaseView):
                 scheduler.remove_job(job_id)
                 flash(f"Job {job_id} removed successfully.", "success")
             except Exception as e:
+                from app.memory_log import log_app_error
+
+                log_app_error("scheduler.remove", f"Failed to remove job {job_id}: {e}", e)
                 flash(f"Failed to remove job {job_id}: {e}", "danger")
         else:
             flash("Scheduler is not enabled.", "danger")
 
         return redirect(url_for(".index"))
+
+
+class WeatherApiLogAdmin(SecureBaseView):
+    @expose("/")
+    def index(self) -> Any:
+        from app.memory_log import get_weather_api_requests
+
+        return self.render(
+            "admin/weather_api_log.html",
+            requests=get_weather_api_requests(),
+        )
+
+
+class AppErrorLogAdmin(SecureBaseView):
+    @expose("/")
+    def index(self) -> Any:
+        from app.memory_log import get_app_errors
+
+        return self.render(
+            "admin/app_error_log.html",
+            errors=get_app_errors(),
+        )

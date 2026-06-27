@@ -5,8 +5,10 @@ from typing import Any
 
 from flask import Flask, redirect, url_for
 from flask_login import current_user
+from werkzeug.exceptions import HTTPException
 
 from app.extensions import db, login_manager, migrate
+from app.memory_log import log_app_error
 from app.models import User
 
 
@@ -52,6 +54,13 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
         if current_user.is_authenticated:
             return redirect(url_for("admin_cities.index_view"))
         return redirect(url_for("auth.login"))
+
+    @app.errorhandler(Exception)
+    def log_unhandled_exception(exc: Exception) -> Any:
+        if isinstance(exc, HTTPException):
+            return exc
+        log_app_error("unhandled", str(exc), exc)
+        raise
 
     if app.config["SCHEDULER_ENABLED"]:
         init_scheduler(app)

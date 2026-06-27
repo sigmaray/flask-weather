@@ -5,11 +5,13 @@ from flask_admin import Admin
 
 from app.admin_auth import SecureAdminIndexView
 from app.admin_views import (
+    AppErrorLogAdmin,
     AppSettingsAdmin,
     CityAdmin,
     SchedulerAdmin,
     ToolsAdmin,
     UserAdmin,
+    WeatherApiLogAdmin,
     WeatherMapAdmin,
     WeatherRecordAdmin,
 )
@@ -45,3 +47,5 @@ def init_admin(app: Flask) -> None:
     )
     admin.add_view(SchedulerAdmin(name="Background Tasks", endpoint="scheduler"))
     admin.add_view(WeatherMapAdmin(name="Map", endpoint="weather_map"))
+    admin.add_view(WeatherApiLogAdmin(name="API Requests", endpoint="weather_api_log"))
+    admin.add_view(AppErrorLogAdmin(name="Error Log", endpoint="app_error_log"))

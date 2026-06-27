@@ -12,6 +12,15 @@ from app.extensions import db
 from app.models import AppSettings, User
 
 
+@pytest.fixture(autouse=True)
+def clear_memory_logs() -> Generator[None, None, None]:
+    from app.memory_log import clear_all
+
+    clear_all()
+    yield
+    clear_all()
+
+
 @pytest.fixture
 def app() -> Generator[Flask, None, None]:
     application = create_app(
@@ -103,7 +112,13 @@ def mock_weather_api() -> Generator[None, None, None]:
             "uv_index_max": [5.5],
         },
     }
-    with patch("app.services.weather.requests.get") as mock_get:
+    with patch("app.memory_log.requests.get") as mock_get:
         mock_get.return_value.json.return_value = response_data
         mock_get.return_value.raise_for_status = lambda: None
+        mock_get.return_value.url = "https://api.open-meteo.com/v1/forecast?latitude=48.8566"
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.text = '{"timezone":"Europe/Paris"}'
+        mock_get.return_value.headers = {"Content-Type": "application/json"}
+        mock_get.return_value.request.method = "GET"
+        mock_get.return_value.request.headers = {"User-Agent": "python-requests/2.32.0"}
         yield

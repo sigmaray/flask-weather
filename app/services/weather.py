@@ -6,6 +6,7 @@ from typing import Any
 import requests
 
 from app.extensions import db
+from app.memory_log import log_app_error, weather_api_get
 from app.models import City, WeatherRecord
 from app.services.geocoding import GeocodingError, geocode_city
 
@@ -76,6 +77,11 @@ def fetch_weather_for_city(city: City) -> WeatherRecord:
     try:
         latitude, longitude = ensure_city_coordinates(city)
     except GeocodingError as exc:
+        log_app_error(
+            "weather.fetch",
+            f"Geocoding failed for city {city.id}: {exc}",
+            exc,
+        )
         raise WeatherFetchError(str(exc)) from exc
     params: dict[str, str | float] = {
         "latitude": latitude,
@@ -89,14 +95,23 @@ def fetch_weather_for_city(city: City) -> WeatherRecord:
         "wind_speed_unit": "ms",
     }
     try:
-        response = requests.get(OPEN_METEO_URL, params=params, timeout=15)
+        response = weather_api_get(OPEN_METEO_URL, params=params, timeout=15)
         response.raise_for_status()
     except requests.RequestException as exc:
+        log_app_error(
+            "weather.fetch",
+            f"Failed to fetch weather for city {city.id}: {exc}",
+            exc,
+        )
         raise WeatherFetchError(str(exc)) from exc
 
     data: dict[str, Any] = response.json()
     current = data.get("current")
     if not current:
+        log_app_error(
+            "weather.fetch",
+            f"No current weather data in response for city {city.id}",
+        )
         raise WeatherFetchError("No current weather data in response")
 
     recorded_at = datetime.now(UTC).replace(tzinfo=None)
