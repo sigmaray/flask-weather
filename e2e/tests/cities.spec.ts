@@ -47,8 +47,6 @@ test.describe("Cities", () => {
   });
 
   test("opens city details with weather history and charts", async ({ page }) => {
-    test.setTimeout(60_000);
-
     await openCityDetails(page, "Berlin");
 
     if (!(await page.getByRole("heading", { name: "History" }).isVisible())) {
@@ -89,8 +87,6 @@ test.describe("Cities", () => {
   });
 
   test("fetch now on city detail stores a weather record", async ({ page }) => {
-    test.setTimeout(60_000);
-
     await openCityDetails(page, "Berlin");
 
     const historyRows = page.locator(".weather-history-table tbody tr");

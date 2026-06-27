@@ -49,8 +49,6 @@ test.describe.serial("Tools", () => {
   });
 
   test("clears weather records after confirmation", async ({ page }) => {
-    test.setTimeout(60_000);
-
     if ((await readWeatherRecordsCount(page)) === "0") {
       await ensureTestCitiesSeeded(page);
       await openCityDetails(page, "Berlin");
