@@ -1,5 +1,7 @@
 # Flask Weather Archive
 
+**English** | [Русский](README.ru.md)
+
 A self-hosted weather history archive for cities. The app periodically fetches current conditions from [Open-Meteo](https://open-meteo.com/), stores them in PostgreSQL, and lets you browse history tables and charts through a Flask-Admin web UI.
 
 ## What it does
