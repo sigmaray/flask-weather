@@ -37,6 +37,14 @@ test.describe("Admin navigation", () => {
     await page.getByRole("link", { name: "Map", exact: true }).click();
     await expect(page).toHaveURL(/\/admin\/weather_map/);
     await expect(page.getByRole("heading", { name: "Weather map" })).toBeVisible();
+
+    await page.getByRole("link", { name: "API Requests", exact: true }).click();
+    await expect(page).toHaveURL(/\/admin\/weather_api_log/);
+    await expect(page.getByText("Weather API Requests (last 100, in memory)")).toBeVisible();
+
+    await page.getByRole("link", { name: "Error Log", exact: true }).click();
+    await expect(page).toHaveURL(/\/admin\/app_error_log/);
+    await expect(page.getByText("Application Errors (last 100, in memory)")).toBeVisible();
   });
 
   test("authenticated root redirects to cities list", async ({ page }) => {

@@ -21,6 +21,20 @@ def test_app_error_log_page_requires_auth(client: FlaskClient) -> None:
     assert "/auth/login" in response.location
 
 
+def test_weather_api_log_page_empty(auth_client: FlaskClient) -> None:
+    response = auth_client.get("/admin/weather_api_log/")
+    assert response.status_code == 200
+    assert b"Weather API Requests" in response.data
+    assert b"No requests logged yet." in response.data
+
+
+def test_app_error_log_page_empty(auth_client: FlaskClient) -> None:
+    response = auth_client.get("/admin/app_error_log/")
+    assert response.status_code == 200
+    assert b"Application Errors" in response.data
+    assert b"No errors logged yet." in response.data
+
+
 def test_weather_api_log_page(
     auth_client: FlaskClient,
     mock_geocoding,
