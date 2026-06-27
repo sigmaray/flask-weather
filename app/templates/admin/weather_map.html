@@ -13,6 +13,18 @@
         height: 520px;
         border-radius: 0.25rem;
     }
+    .custom-temp-icon {
+        background: white;
+        border: 2px solid #007bff;
+        border-radius: 4px;
+        padding: 2px 6px;
+        font-weight: bold;
+        text-align: center;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        white-space: nowrap;
+        font-size: 14px;
+        color: #333;
+    }
 </style>
 {% endblock %}
 
@@ -56,7 +68,13 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 if (mapPoints.length > 0) {
     const bounds = [];
     mapPoints.forEach((point) => {
-        const marker = L.marker([point.latitude, point.longitude]).addTo(map);
+        const tempIcon = L.divIcon({
+            className: 'custom-temp-icon',
+            html: `${point.temperature_c.toFixed(1)} °C`,
+            iconSize: null,
+            iconAnchor: [25, 15]
+        });
+        const marker = L.marker([point.latitude, point.longitude], { icon: tempIcon }).addTo(map);
         marker.bindPopup(`
             <strong>${point.city_name}</strong><br>
             ${point.temperature_c.toFixed(1)} °C · ${point.weather_label}<br>
