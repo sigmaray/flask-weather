@@ -10,8 +10,8 @@ from app.services.user_service import clear_users_table, seed_admin_user
 
 
 def register_cli(app: Flask) -> None:
-    @app.cli.command("create-user")
-    def create_user() -> None:
+    @app.cli.command("users-create")
+    def users_create() -> None:
         """Create a user (login only via CLI, not UI registration)."""
         username = click.prompt("Login", type=str).strip()
         if not username:

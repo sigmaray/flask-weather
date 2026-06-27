@@ -47,7 +47,7 @@ def test_no_register_route(client: FlaskClient) -> None:
 
 def test_create_user_cli(app, runner) -> None:
     result = runner.invoke(
-        args=["create-user"],
+        args=["users-create"],
         input="cliuser\nsecretpass\nsecretpass\n",
     )
     assert result.exit_code == 0
@@ -59,7 +59,7 @@ def test_create_user_cli(app, runner) -> None:
 
 def test_create_user_password_mismatch(app, runner) -> None:
     result = runner.invoke(
-        args=["create-user"],
+        args=["users-create"],
         input="cliuser2\nsecretpass\notherpass\n",
     )
     assert result.exit_code == 1

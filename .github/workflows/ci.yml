@@ -87,7 +87,7 @@ jobs:
           USE_VCR: "true"
         run: |
           flask db upgrade
-          printf 'e2euser\ne2epass\ne2epass\n' | flask create-user
+          printf 'e2euser\ne2epass\ne2epass\n' | flask users-create
           flask run --port 5000 &
           for i in $(seq 1 30); do
             curl -sf http://localhost:5000/auth/login && break
