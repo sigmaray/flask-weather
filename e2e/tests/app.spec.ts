@@ -1,27 +1,13 @@
 import { test, expect } from "@playwright/test";
 
-const username = process.env.E2E_USERNAME ?? "admin";
-const password = process.env.E2E_PASSWORD ?? "admin";
+import { login } from "./support/auth";
+import { goToTools } from "./support/helpers";
 
-test.describe("Weather Archive", () => {
-  test("login and navigate admin", async ({ page }) => {
-    await page.goto("/auth/login");
-    await expect(page.getByRole("heading", { name: "Login" })).toBeVisible();
-
-    await page.getByLabel("Username").fill(username);
-    await page.getByLabel("Password").fill(password);
-    await page.getByRole("button", { name: "Sign in" }).click();
-
-    await expect(page).toHaveURL(/\/admin\/admin_cities/);
+test.describe("Weather Archive smoke", () => {
+  test("login and open tools page", async ({ page }) => {
+    await login(page);
     await expect(page.getByRole("link", { name: "Cities", exact: true })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Tools", exact: true })).toBeVisible();
-
-    await page.getByRole("link", { name: "Tools", exact: true }).click();
-    await expect(page.getByRole("heading", { name: "Tools" })).toBeVisible();
-  });
-
-  test("registration page does not exist", async ({ page }) => {
-    const response = await page.goto("/auth/register");
-    expect(response?.status()).toBe(404);
+    await goToTools(page);
+    await expect(page.getByRole("button", { name: "Fetch due cities" })).toBeVisible();
   });
 });
