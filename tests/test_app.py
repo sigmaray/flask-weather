@@ -113,6 +113,19 @@ def test_users_seed_idempotent(app, runner, user: User) -> None:
         assert User.query.count() == 1
 
 
+def test_users_show_empty(app, runner) -> None:
+    result = runner.invoke(args=["users-show"])
+    assert result.exit_code == 0
+    assert "No users." in result.output
+
+
+def test_users_show_with_users(app, runner, user: User) -> None:
+    result = runner.invoke(args=["users-show"])
+    assert result.exit_code == 0
+    assert "ID  Username  Created" in result.output
+    assert "testuser" in result.output
+
+
 def test_cities_seed_cli(app, runner) -> None:
     result = runner.invoke(args=["cities-seed"])
     assert result.exit_code == 0
@@ -124,6 +137,25 @@ def test_cities_seed_cli(app, runner) -> None:
         assert berlin is not None
         assert berlin.latitude is None
         assert berlin.longitude is None
+
+
+def test_cities_show_empty(app, runner) -> None:
+    result = runner.invoke(args=["cities-show"])
+    assert result.exit_code == 0
+    assert "No cities." in result.output
+
+
+def test_cities_show_with_cities(app, runner) -> None:
+    with app.app_context():
+        db.session.add(City(name="Berlin", country="Germany"))
+        db.session.commit()
+
+    result = runner.invoke(args=["cities-show"])
+    assert result.exit_code == 0
+    assert "ID  Name    Country  Geocoded" in result.output
+    assert "Berlin" in result.output
+    assert "Germany" in result.output
+    assert "default" in result.output
 
 
 def test_cities_seed_idempotent(app, runner) -> None:
