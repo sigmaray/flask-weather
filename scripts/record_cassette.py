@@ -1,13 +1,13 @@
 import os
-import sys
 import shutil
 
-from app.factory import create_app
 from app.extensions import db
+from app.factory import create_app
 from app.models import City
+from app.services.city_service import TEST_CITIES
 from app.services.weather import fetch_weather_for_city
 from app.vcr_setup import vcr_context
-from app.services.city_service import TEST_CITIES
+
 
 def main():
     if os.path.exists("e2e/e2e_cassettes"):
@@ -18,10 +18,10 @@ def main():
         "TESTING": True,
         "SCHEDULER_ENABLED": False,
     })
-    
+
     with app.app_context():
         db.create_all()
-        
+
         cities = []
         for name, country in TEST_CITIES:
             city = City(name=name, country=country)
@@ -31,7 +31,7 @@ def main():
 
         os.environ["USE_VCR"] = "true"
         vcr_context.start()
-        
+
         print("Fetching weather for all cities to record cassette...")
         for city in cities:
             print(f"Fetching {city.name}...")
