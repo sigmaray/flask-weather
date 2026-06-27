@@ -36,19 +36,6 @@
 </div>
 
 {% if records %}
-<div class="chart-container">
-    <canvas id="temperatureChart"></canvas>
-</div>
-<div class="chart-container">
-    <canvas id="humidityChart"></canvas>
-</div>
-<div class="chart-container">
-    <canvas id="windChart"></canvas>
-</div>
-<div class="chart-container">
-    <canvas id="snowChart"></canvas>
-</div>
-
 <h2 class="mt-4">History</h2>
 <table class="table table-sm table-striped">
     <thead>
@@ -76,6 +63,19 @@
         {% endfor %}
     </tbody>
 </table>
+
+<div class="chart-container mt-4">
+    <canvas id="temperatureChart"></canvas>
+</div>
+<div class="chart-container">
+    <canvas id="humidityChart"></canvas>
+</div>
+<div class="chart-container">
+    <canvas id="windChart"></canvas>
+</div>
+<div class="chart-container">
+    <canvas id="snowChart"></canvas>
+</div>
 {% else %}
 <p class="text-muted">No weather records yet. Use "Fetch now" to collect data.</p>
 {% endif %}
