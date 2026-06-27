@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 from datetime import datetime
+from unittest.mock import patch
 
 from flask.testing import FlaskClient
 
 from app.extensions import db
+from app.memory_log import get_app_errors
 from app.models import City, User, WeatherRecord
 
 
@@ -312,6 +314,31 @@ def test_fetch_weather_persists_coordinates(
         assert city is not None
         assert city.latitude == 48.8566
         assert city.longitude == 2.3522
+
+
+def test_city_fetch_weather_shows_flash_when_geocoding_request_fails(
+    auth_client: FlaskClient,
+) -> None:
+    with auth_client.application.app_context():
+        city = City(name="E2E Bad City", country="NowhereLand")
+        db.session.add(city)
+        db.session.commit()
+        city_id = city.id
+
+    with patch("app.services.geocoding.requests.get", side_effect=RuntimeError("cassette miss")):
+        response = auth_client.post(
+            f"/admin/admin_cities/fetch-weather/?id={city_id}",
+            follow_redirects=True,
+        )
+
+    assert response.status_code == 200
+    assert b"Failed to fetch weather: cassette miss" in response.data
+
+    errors = get_app_errors()
+    assert len(errors) == 1
+    assert errors[0].source == "weather.fetch"
+    assert errors[0].exception_type == "GeocodingError"
+    assert "Geocoding failed" in errors[0].message
 
 
 def test_clear_cities_tools(auth_client: FlaskClient) -> None:

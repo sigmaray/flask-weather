@@ -47,6 +47,12 @@ def test_geocode_city_not_found() -> None:
             geocode_city("Nowhere", "Atlantis")
 
 
+def test_geocode_city_wraps_unexpected_request_errors() -> None:
+    with patch("app.services.geocoding.requests.get", side_effect=RuntimeError("cassette miss")):
+        with pytest.raises(GeocodingError, match="cassette miss"):
+            geocode_city("Nowhere", "Atlantis")
+
+
 def test_reverse_geocode() -> None:
     with patch("app.services.geocoding.requests.get") as mock_get:
         mock_get.return_value.json.return_value = {"display_name": "Berlin, Germany"}

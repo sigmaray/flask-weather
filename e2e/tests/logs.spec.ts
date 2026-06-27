@@ -45,15 +45,22 @@ test.describe.serial("Logs", () => {
   });
 
   test("Error Log page shows errors from failed weather fetch", async ({ page }) => {
-    const cityName = `E2E Bad City ${Date.now()}`;
+    const cityName = "E2E Bad City";
 
-    await openCreateCityForm(page);
-    await page.getByLabel("Name").fill(cityName);
-    await page.getByLabel("Country").fill("NowhereLand");
-    await page.getByRole("button", { name: "Save", exact: true }).click();
-    await expect(page).toHaveURL(/\/admin\/admin_cities/);
+    await page.goto("/admin/admin_cities/");
+    await page.locator('input[name="search"]').fill(cityName);
+    await page.getByRole("button", { name: "Search" }).click();
 
-    const row = page.getByRole("row", { name: new RegExp(cityName) });
+    let row = page.getByRole("row", { name: new RegExp(cityName) }).first();
+    if ((await row.count()) === 0) {
+      await openCreateCityForm(page);
+      await page.getByLabel("Name").fill(cityName);
+      await page.getByLabel("Country").fill("NowhereLand");
+      await page.getByRole("button", { name: "Save", exact: true }).click();
+      await expect(page).toHaveURL(/\/admin\/admin_cities/);
+      row = page.getByRole("row", { name: new RegExp(cityName) }).first();
+    }
+
     await row.getByTitle("View Record").click();
     await page.getByRole("button", { name: "Fetch now" }).click();
     await expectFlash(page, /Failed to fetch weather:/, 30_000);

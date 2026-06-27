@@ -72,6 +72,9 @@ def _search(name: str) -> list[dict[str, Any]]:
         response.raise_for_status()
     except requests.RequestException as exc:
         raise GeocodingError(str(exc)) from exc
+    except Exception as exc:
+        # VCR can raise before requests returns a Response when a cassette misses a URI.
+        raise GeocodingError(str(exc)) from exc
 
     data: dict[str, Any] = response.json()
     results = data.get("results")
