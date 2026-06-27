@@ -6,7 +6,13 @@ export async function expectFlash(
   timeout = 10_000,
 ): Promise<void> {
   const alert = page.locator(".alert").filter({ hasText: message });
-  await expect(alert.first()).toBeVisible({ timeout });
+  try {
+    await expect(alert.first()).toBeVisible({ timeout });
+  } catch (err) {
+    const allAlerts = await page.locator(".alert").allTextContents();
+    console.error(`Failed to find flash message matching ${message}. Found alerts:`, allAlerts);
+    throw err;
+  }
 }
 
 export async function goToTools(page: Page): Promise<void> {

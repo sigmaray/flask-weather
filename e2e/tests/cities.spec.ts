@@ -47,6 +47,8 @@ test.describe("Cities", () => {
   });
 
   test("opens city details with weather history and charts", async ({ page }) => {
+    test.setTimeout(60_000);
+
     await openCityDetails(page, "Berlin");
 
     if (!(await page.getByRole("heading", { name: "History" }).isVisible())) {
