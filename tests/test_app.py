@@ -116,10 +116,10 @@ def test_users_seed_idempotent(app, runner, user: User) -> None:
 def test_cities_seed_cli(app, runner) -> None:
     result = runner.invoke(args=["cities-seed"])
     assert result.exit_code == 0
-    assert "Added 5 test cities" in result.output
+    assert "Added 10 test cities" in result.output
 
     with app.app_context():
-        assert City.query.count() == 5
+        assert City.query.count() == 10
         berlin = City.query.filter_by(name="Berlin", country="Germany").first()
         assert berlin is not None
         assert berlin.latitude is None
@@ -141,9 +141,9 @@ def test_cities_seed_idempotent(app, runner) -> None:
 
 def test_seed_cities_tools(auth_client: FlaskClient) -> None:
     response = auth_client.post("/admin/tools/seed-cities/", follow_redirects=True)
-    assert b"Added 5 test cities" in response.data
+    assert b"Added 10 test cities" in response.data
     with auth_client.application.app_context():
-        assert City.query.count() == 5
+        assert City.query.count() == 10
 
 
 def test_city_detail_with_records(auth_client: FlaskClient) -> None:
@@ -227,3 +227,37 @@ def test_fetch_weather_tools_by_name_country(
     with auth_client.application.app_context():
         records = WeatherRecord.query.filter_by(city_id=city_id).all()
         assert len(records) == 1
+
+
+def test_clear_cities_tools(auth_client: FlaskClient) -> None:
+    with auth_client.application.app_context():
+        db.session.add(City(name="Berlin", country="Germany"))
+        db.session.commit()
+        assert City.query.count() == 1
+
+    response = auth_client.post("/admin/tools/clear-cities/", follow_redirects=True)
+    assert b"Deleted 1 city/cities." in response.data
+    with auth_client.application.app_context():
+        assert City.query.count() == 0
+
+
+def test_clear_weather_tools(auth_client: FlaskClient) -> None:
+    with auth_client.application.app_context():
+        city = City(name="Berlin", country="Germany")
+        db.session.add(city)
+        db.session.commit()
+        db.session.add(
+            WeatherRecord(
+                city_id=city.id,
+                recorded_at=datetime(2026, 1, 1, 12, 0),
+                temperature_c=10.0,
+            )
+        )
+        db.session.commit()
+        assert WeatherRecord.query.count() == 1
+
+    response = auth_client.post("/admin/tools/clear-weather/", follow_redirects=True)
+    assert b"Deleted 1 weather record(s)." in response.data
+    with auth_client.application.app_context():
+        assert WeatherRecord.query.count() == 0
+        assert City.query.count() == 1

@@ -151,3 +151,14 @@ def _optional_str(value: Any) -> str | None:
         return None
     text = str(value).strip()
     return text or None
+
+
+def clear_weather_records() -> tuple[str, str]:
+    """Delete all weather records. Returns (flash category, message)."""
+    count = WeatherRecord.query.count()
+    if count == 0:
+        return ("info", "No weather records to delete.")
+
+    WeatherRecord.query.delete()
+    db.session.commit()
+    return ("success", f"Deleted {count} weather record(s).")

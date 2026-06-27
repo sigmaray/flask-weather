@@ -346,6 +346,22 @@ class ToolsAdmin(SecureBaseView):
         flash(message, category)
         return redirect(url_for(".index"))
 
+    @expose("/clear-cities/", methods=["POST"])
+    def clear_cities(self) -> Response:
+        from app.services.city_service import clear_cities_table
+
+        category, message = clear_cities_table()
+        flash(message, category)
+        return redirect(url_for(".index"))
+
+    @expose("/clear-weather/", methods=["POST"])
+    def clear_weather(self) -> Response:
+        from app.services.weather import clear_weather_records
+
+        category, message = clear_weather_records()
+        flash(message, category)
+        return redirect(url_for(".index"))
+
     @expose("/seed-users/", methods=["POST"])
     def seed_users(self) -> Response:
         from app.services.user_service import seed_admin_user
