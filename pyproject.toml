@@ -67,5 +67,7 @@ module = [
     "flask_migrate",
     "wtforms.*",
     "wtforms",
+    "vcr",
+    "vcr.*",
 ]
 ignore_missing_imports = true
