@@ -187,13 +187,6 @@ flask fetch-weather   # fetch for all cities that are currently due
 ### Linting and type checking
 
 ```bash
-make linter    # ruff check .
-make types     # mypy app wsgi.py
-```
-
-Or directly:
-
-```bash
 ruff check .
 mypy app wsgi.py
 ```
@@ -225,12 +218,6 @@ cd e2e
 npm ci
 npx playwright install chromium
 BASE_URL=http://localhost:5000 E2E_USERNAME=e2euser E2E_PASSWORD=e2epass npm test
-```
-
-From the repo root:
-
-```bash
-make browser-tests   # runs npm test in e2e/ (set BASE_URL and credentials first)
 ```
 
 E2E suites cover auth, cities, settings, scheduler, tools, logs, and admin navigation.
