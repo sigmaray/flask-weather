@@ -51,6 +51,10 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
     init_admin(app)
     register_cli(app)
 
+    @app.route("/up")
+    def health() -> tuple[str, int]:
+        return "OK", 200
+
     @app.route("/")
     def index() -> Any:
         if current_user.is_authenticated:

@@ -1,0 +1,56 @@
+# Name of your application. Used to uniquely configure containers.
+service: flask-weather
+
+# Name of the container image (GHCR).
+image: ghcr.io/sigmaray/flask-weather
+
+servers:
+  web:
+    - <%= ENV.fetch("KAMAL_SERVER_HOST") %>
+
+proxy:
+  ssl: <%= ENV.fetch("KAMAL_SSL", "true") == "true" %>
+  host: <%= ENV.fetch("KAMAL_HOST") %>
+  app_port: 5000
+  healthcheck:
+    path: /up
+
+registry:
+  server: ghcr.io
+  username: <%= ENV.fetch("KAMAL_REGISTRY_USERNAME") %>
+  password:
+    - KAMAL_REGISTRY_PASSWORD
+
+builder:
+  arch: amd64
+  cache:
+    type: gha
+    options: mode=max
+    image: flask-weather-build-cache
+
+env:
+  clear:
+    FLASK_APP: wsgi:app
+    SCHEDULER_ENABLED: "true"
+  secret:
+    - DATABASE_URL
+    - SECRET_KEY
+
+accessories:
+  db:
+    image: postgres:16-alpine
+    host: <%= ENV.fetch("KAMAL_SERVER_HOST") %>
+    port: "127.0.0.1:5432:5432"
+    env:
+      clear:
+        POSTGRES_USER: weather
+        POSTGRES_DB: weather
+      secret:
+        - POSTGRES_PASSWORD
+    directories:
+      - data:/var/lib/postgresql/data
+
+aliases:
+  shell: app exec --interactive --reuse "bash"
+  migrate: app exec "flask db upgrade"
+  logs: app logs -f

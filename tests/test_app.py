@@ -14,6 +14,12 @@ def test_login_page_accessible(client: FlaskClient) -> None:
     assert b"Login" in response.data
 
 
+def test_health_endpoint(client: FlaskClient) -> None:
+    response = client.get("/up")
+    assert response.status_code == 200
+    assert response.data == b"OK"
+
+
 def test_index_requires_login(client: FlaskClient) -> None:
     response = client.get("/")
     assert response.status_code == 302

@@ -1,0 +1,137 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy-smoke:
+    name: Deploy smoke test
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: weather
+          POSTGRES_PASSWORD: weather
+          POSTGRES_DB: weather
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U weather -d weather"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+
+      - name: Validate Kamal configuration
+        env:
+          KAMAL_SERVER_HOST: 127.0.0.1
+          KAMAL_HOST: example.com
+          KAMAL_SSL: "false"
+          KAMAL_REGISTRY_USERNAME: github
+          KAMAL_REGISTRY_PASSWORD: smoke-test-token
+          SECRET_KEY: smoke-test-secret
+          POSTGRES_PASSWORD: weather
+        run: |
+          bundle exec kamal config > /dev/null
+          echo "Kamal configuration is valid"
+
+      - name: Build production image
+        run: docker build -t flask-weather:smoke .
+
+      - name: Run container health check
+        env:
+          DATABASE_URL: postgresql://weather:weather@localhost:5432/weather
+          SECRET_KEY: smoke-test-secret
+          SCHEDULER_ENABLED: "false"
+        run: |
+          docker run -d --name flask-weather-smoke \
+            --network host \
+            -e DATABASE_URL \
+            -e SECRET_KEY \
+            -e SCHEDULER_ENABLED \
+            -e FLASK_APP=wsgi:app \
+            flask-weather:smoke
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:5000/up; then
+              echo ""
+              echo "Health check passed"
+              exit 0
+            fi
+            sleep 1
+          done
+          docker logs flask-weather-smoke
+          exit 1
+
+      - name: Stop smoke container
+        if: always()
+        run: docker rm -f flask-weather-smoke 2>/dev/null || true
+
+  deploy:
+    name: Kamal deploy
+    needs: deploy-smoke
+    if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Expose GitHub Runtime for cache
+        uses: crazy-max/ghaction-github-runtime@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          eval "$(ssh-agent -s)"
+          ssh-add ~/.ssh/id_ed25519
+          ssh-keyscan -H "$KAMAL_SERVER_HOST" >> ~/.ssh/known_hosts
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          KAMAL_SERVER_HOST: ${{ secrets.KAMAL_SERVER_HOST }}
+
+      - name: Deploy with Kamal
+        env:
+          KAMAL_SERVER_HOST: ${{ secrets.KAMAL_SERVER_HOST }}
+          KAMAL_HOST: ${{ secrets.KAMAL_HOST }}
+          KAMAL_SSL: ${{ vars.KAMAL_SSL || 'true' }}
+          KAMAL_REGISTRY_USERNAME: ${{ github.actor }}
+          KAMAL_REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+        run: bundle exec kamal deploy
