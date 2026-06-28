@@ -15,6 +15,7 @@
 #   SETUP_SKIP_DOCKER_INSTALL   Set to 1 to skip Docker installation (useful in CI)
 #   SETUP_SOURCE_DIR            Copy project from this path instead of cloning (CI / local test)
 #   SETUP_ALLOW_NON_ROOT        Set to 1 to skip root check (CI with passwordless sudo)
+#   SETUP_FORCE                 Set to 1 to redeploy even when already at GIT_REF and running
 #   HEALTH_URL                  URL for readiness probe (default: http://127.0.0.1:5000/auth/login)
 #   HEALTH_TIMEOUT_SEC          Seconds to wait for the app (default: 120)
 
@@ -27,13 +28,14 @@ SETUP_SKIP_APT="${SETUP_SKIP_APT:-0}"
 SETUP_SKIP_DOCKER_INSTALL="${SETUP_SKIP_DOCKER_INSTALL:-0}"
 SETUP_SOURCE_DIR="${SETUP_SOURCE_DIR:-}"
 SETUP_ALLOW_NON_ROOT="${SETUP_ALLOW_NON_ROOT:-0}"
+SETUP_FORCE="${SETUP_FORCE:-0}"
 HEALTH_URL="${HEALTH_URL:-http://127.0.0.1:5000/auth/login}"
 HEALTH_TIMEOUT_SEC="${HEALTH_TIMEOUT_SEC:-120}"
 
 COMPOSE_FILES=(-f docker-compose.yml -f docker-compose.with-pg.yml)
 
 log() {
-  printf '[setup-vps] %s\n' "$*"
+  printf '[setup-vps] %s\n' "$*" >&2
 }
 
 die() {
@@ -56,6 +58,7 @@ Environment variables:
   SETUP_SKIP_DOCKER_INSTALL   Skip Docker install when set to 1
   SETUP_SOURCE_DIR            Use existing directory instead of git clone
   SETUP_ALLOW_NON_ROOT        Allow running without root (for CI)
+  SETUP_FORCE                 Redeploy even when already at GIT_REF and running
   HEALTH_URL                  Readiness check URL
   HEALTH_TIMEOUT_SEC          Readiness timeout in seconds
 EOF
@@ -114,6 +117,63 @@ install_docker() {
   systemctl enable --now docker
 }
 
+remote_ref_sha() {
+  git -C "${DEPLOY_DIR}" rev-parse "origin/${GIT_REF}" 2>/dev/null \
+    || git -C "${DEPLOY_DIR}" rev-parse "${GIT_REF}"
+}
+
+project_worktree_clean() {
+  git -C "${DEPLOY_DIR}" diff --quiet HEAD \
+    && git -C "${DEPLOY_DIR}" diff --cached --quiet HEAD
+}
+
+fetch_existing_clone() {
+  git -C "${DEPLOY_DIR}" fetch --depth 1 origin "${GIT_REF}"
+}
+
+reset_existing_clone() {
+  git -C "${DEPLOY_DIR}" checkout "${GIT_REF}"
+  git -C "${DEPLOY_DIR}" reset --hard "origin/${GIT_REF}" 2>/dev/null \
+    || git -C "${DEPLOY_DIR}" reset --hard "${GIT_REF}"
+}
+
+compose_stack_running() {
+  [[ -d "${DEPLOY_DIR}" ]] || return 1
+
+  local services
+  services="$(cd "${DEPLOY_DIR}" && docker compose "${COMPOSE_FILES[@]}" ps --status running --format '{{.Service}}' 2>/dev/null)" \
+    || return 1
+  grep -qx 'web' <<<"${services}" || return 1
+  grep -qx 'db' <<<"${services}" || return 1
+}
+
+app_is_ready() {
+  curl -sf "${HEALTH_URL}" >/dev/null
+}
+
+# Echoes "sync" when the working tree must be updated, "current" when already at GIT_REF.
+assess_existing_clone() {
+  fetch_existing_clone
+
+  local local_sha remote_sha
+  local_sha="$(git -C "${DEPLOY_DIR}" rev-parse HEAD)"
+  remote_sha="$(remote_ref_sha)"
+
+  if [[ "${local_sha}" == "${remote_sha}" ]] && project_worktree_clean; then
+    log "Already at ${GIT_REF} (${local_sha:0:7}) in ${DEPLOY_DIR}"
+    printf 'current'
+    return 0
+  fi
+
+  if [[ "${local_sha}" != "${remote_sha}" ]]; then
+    log "Updating ${local_sha:0:7} -> ${remote_sha:0:7} in ${DEPLOY_DIR}"
+  else
+    log "Resetting local changes in ${DEPLOY_DIR}"
+  fi
+  reset_existing_clone
+  printf 'sync'
+}
+
 deploy_project() {
   log "Deploying project to ${DEPLOY_DIR}..."
 
@@ -122,26 +182,33 @@ deploy_project() {
     rm -rf "${DEPLOY_DIR}"
     mkdir -p "${DEPLOY_DIR}"
     cp -a "${SETUP_SOURCE_DIR}/." "${DEPLOY_DIR}/"
+    printf 'sync'
     return 0
   fi
 
   if [[ -d "${DEPLOY_DIR}/.git" ]]; then
-    log "Updating existing clone in ${DEPLOY_DIR}"
-    git -C "${DEPLOY_DIR}" fetch --depth 1 origin "${GIT_REF}"
-    git -C "${DEPLOY_DIR}" checkout "${GIT_REF}"
-    git -C "${DEPLOY_DIR}" reset --hard "origin/${GIT_REF}" 2>/dev/null \
-      || git -C "${DEPLOY_DIR}" reset --hard "${GIT_REF}"
+    assess_existing_clone
     return 0
   fi
 
   mkdir -p "$(dirname "${DEPLOY_DIR}")"
   git clone --branch "${GIT_REF}" --depth 1 "${REPO_URL}" "${DEPLOY_DIR}"
+  printf 'sync'
 }
 
 start_compose() {
-  log "Building and starting docker compose stack..."
+  local rebuild="${1:-1}"
+
+  if [[ "${rebuild}" == "1" ]]; then
+    log "Building and starting docker compose stack..."
+    cd "${DEPLOY_DIR}"
+    docker compose "${COMPOSE_FILES[@]}" up -d --build
+    return 0
+  fi
+
+  log "Starting docker compose stack (no rebuild)..."
   cd "${DEPLOY_DIR}"
-  docker compose "${COMPOSE_FILES[@]}" up -d --build
+  docker compose "${COMPOSE_FILES[@]}" up -d
 }
 
 wait_for_app() {
@@ -171,9 +238,26 @@ main() {
   install_packages
   install_docker
 
-  deploy_project
-  start_compose
-  wait_for_app
+  local deploy_action
+  deploy_action="$(deploy_project)"
+
+  if [[ "${SETUP_FORCE}" == "1" ]]; then
+    log "SETUP_FORCE=1 — rebuilding and restarting the stack"
+    start_compose 1
+    wait_for_app
+  elif [[ "${deploy_action}" == "current" \
+        && compose_stack_running \
+        && app_is_ready ]]; then
+    log "Project is already deployed at ${GIT_REF} and the stack is healthy — skipping redeploy"
+    log "Use SETUP_FORCE=1 to rebuild and restart anyway"
+  elif [[ "${deploy_action}" == "current" ]]; then
+    log "Project is already at ${GIT_REF}; ensuring compose stack is up"
+    start_compose 0
+    wait_for_app
+  else
+    start_compose 1
+    wait_for_app
+  fi
 
   log "Deployment complete."
   log "  Directory: ${DEPLOY_DIR}"
