@@ -1,0 +1,36 @@
+name: VPS setup script
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test-setup-vps:
+    name: Test VPS bootstrap script
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run setup script (CI mode)
+        env:
+          DEPLOY_DIR: /tmp/flask-weather-deploy
+          SETUP_SKIP_APT: "1"
+          SETUP_SKIP_DOCKER_INSTALL: "1"
+          SETUP_SOURCE_DIR: ${{ github.workspace }}
+          SECRET_KEY: ci-test-secret
+          HEALTH_TIMEOUT_SEC: "180"
+        run: |
+          chmod +x scripts/setup-vps.sh
+          sudo -E bash scripts/setup-vps.sh
+
+      - name: Verify login page responds
+        run: |
+          curl -sf http://127.0.0.1:5000/auth/login | grep -qi login
+
+      - name: Show container status on failure
+        if: failure()
+        working-directory: /tmp/flask-weather-deploy
+        run: docker compose -f docker-compose.yml -f docker-compose.with-pg.yml ps && docker compose -f docker-compose.yml -f docker-compose.with-pg.yml logs --tail=100

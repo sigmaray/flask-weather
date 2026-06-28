@@ -1,0 +1,185 @@
+#!/usr/bin/env bash
+# Bootstrap a fresh Ubuntu VPS: install git & Docker, deploy flask-weather, start via Compose.
+#
+# Usage (on VPS as root):
+#   curl -fsSL https://raw.githubusercontent.com/sigmaray/flask-weather/main/scripts/setup-vps.sh | bash
+#   # or
+#   sudo bash scripts/setup-vps.sh
+#
+# Environment variables:
+#   DEPLOY_DIR                  Target directory (default: /opt/flask-weather)
+#   REPO_URL                    Git clone URL (default: https://github.com/sigmaray/flask-weather.git)
+#   GIT_REF                     Branch, tag, or commit to deploy (default: main)
+#   SECRET_KEY                  Flask secret key (default: auto-generated on VPS)
+#   SETUP_SKIP_APT              Set to 1 to skip apt-get (useful in CI where git is preinstalled)
+#   SETUP_SKIP_DOCKER_INSTALL   Set to 1 to skip Docker installation (useful in CI)
+#   SETUP_SOURCE_DIR            Copy project from this path instead of cloning (CI / local test)
+#   SETUP_ALLOW_NON_ROOT        Set to 1 to skip root check (CI with passwordless sudo)
+#   HEALTH_URL                  URL for readiness probe (default: http://127.0.0.1:5000/auth/login)
+#   HEALTH_TIMEOUT_SEC          Seconds to wait for the app (default: 120)
+
+set -euo pipefail
+
+DEPLOY_DIR="${DEPLOY_DIR:-/opt/flask-weather}"
+REPO_URL="${REPO_URL:-https://github.com/sigmaray/flask-weather.git}"
+GIT_REF="${GIT_REF:-main}"
+SETUP_SKIP_APT="${SETUP_SKIP_APT:-0}"
+SETUP_SKIP_DOCKER_INSTALL="${SETUP_SKIP_DOCKER_INSTALL:-0}"
+SETUP_SOURCE_DIR="${SETUP_SOURCE_DIR:-}"
+SETUP_ALLOW_NON_ROOT="${SETUP_ALLOW_NON_ROOT:-0}"
+HEALTH_URL="${HEALTH_URL:-http://127.0.0.1:5000/auth/login}"
+HEALTH_TIMEOUT_SEC="${HEALTH_TIMEOUT_SEC:-120}"
+
+COMPOSE_FILES=(-f docker-compose.yml -f docker-compose.with-pg.yml)
+
+log() {
+  printf '[setup-vps] %s\n' "$*"
+}
+
+die() {
+  printf '[setup-vps] ERROR: %s\n' "$*" >&2
+  exit 1
+}
+
+usage() {
+  cat <<'EOF'
+Usage: setup-vps.sh
+
+Bootstrap Ubuntu, install git and Docker, deploy flask-weather, and start docker compose.
+
+Environment variables:
+  DEPLOY_DIR                  Deployment directory (default: /opt/flask-weather)
+  REPO_URL                    Git repository URL
+  GIT_REF                     Branch, tag, or commit (default: main)
+  SECRET_KEY                  Flask session secret (random if unset on VPS)
+  SETUP_SKIP_APT              Skip apt-get when set to 1
+  SETUP_SKIP_DOCKER_INSTALL   Skip Docker install when set to 1
+  SETUP_SOURCE_DIR            Use existing directory instead of git clone
+  SETUP_ALLOW_NON_ROOT        Allow running without root (for CI)
+  HEALTH_URL                  Readiness check URL
+  HEALTH_TIMEOUT_SEC          Readiness timeout in seconds
+EOF
+}
+
+require_root() {
+  if [[ "${SETUP_ALLOW_NON_ROOT}" == "1" ]]; then
+    return 0
+  fi
+  if [[ "${EUID:-$(id -u)}" -ne 0 ]]; then
+    die "Run as root: sudo bash $0"
+  fi
+}
+
+ensure_secret_key() {
+  if [[ -z "${SECRET_KEY:-}" ]]; then
+    if command -v openssl >/dev/null 2>&1; then
+      SECRET_KEY="$(openssl rand -hex 32)"
+    else
+      SECRET_KEY="dev-secret-change-in-production"
+      log "openssl not found; using default SECRET_KEY — change it in production"
+    fi
+  fi
+  export SECRET_KEY
+}
+
+install_packages() {
+  if [[ "${SETUP_SKIP_APT}" == "1" ]]; then
+    command -v git >/dev/null 2>&1 || die "git not found (install it or unset SETUP_SKIP_APT)"
+    command -v curl >/dev/null 2>&1 || die "curl not found (install it or unset SETUP_SKIP_APT)"
+    log "Skipping apt-get (SETUP_SKIP_APT=1)"
+    return 0
+  fi
+
+  log "Installing git and prerequisites..."
+  export DEBIAN_FRONTEND=noninteractive
+  apt-get update -qq
+  apt-get install -y -qq git curl ca-certificates openssl
+}
+
+install_docker() {
+  if [[ "${SETUP_SKIP_DOCKER_INSTALL}" == "1" ]]; then
+    log "Skipping Docker installation (SETUP_SKIP_DOCKER_INSTALL=1)"
+    command -v docker >/dev/null 2>&1 || die "docker not found and installation was skipped"
+    docker compose version >/dev/null 2>&1 || die "docker compose plugin not found"
+    return 0
+  fi
+
+  if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
+    log "Docker is already installed"
+    return 0
+  fi
+
+  log "Installing Docker..."
+  curl -fsSL https://get.docker.com | sh
+  systemctl enable --now docker
+}
+
+deploy_project() {
+  log "Deploying project to ${DEPLOY_DIR}..."
+
+  if [[ -n "${SETUP_SOURCE_DIR}" ]]; then
+    [[ -d "${SETUP_SOURCE_DIR}" ]] || die "SETUP_SOURCE_DIR does not exist: ${SETUP_SOURCE_DIR}"
+    rm -rf "${DEPLOY_DIR}"
+    mkdir -p "${DEPLOY_DIR}"
+    cp -a "${SETUP_SOURCE_DIR}/." "${DEPLOY_DIR}/"
+    return 0
+  fi
+
+  if [[ -d "${DEPLOY_DIR}/.git" ]]; then
+    log "Updating existing clone in ${DEPLOY_DIR}"
+    git -C "${DEPLOY_DIR}" fetch --depth 1 origin "${GIT_REF}"
+    git -C "${DEPLOY_DIR}" checkout "${GIT_REF}"
+    git -C "${DEPLOY_DIR}" reset --hard "origin/${GIT_REF}" 2>/dev/null \
+      || git -C "${DEPLOY_DIR}" reset --hard "${GIT_REF}"
+    return 0
+  fi
+
+  mkdir -p "$(dirname "${DEPLOY_DIR}")"
+  git clone --branch "${GIT_REF}" --depth 1 "${REPO_URL}" "${DEPLOY_DIR}"
+}
+
+start_compose() {
+  log "Building and starting docker compose stack..."
+  cd "${DEPLOY_DIR}"
+  docker compose "${COMPOSE_FILES[@]}" up -d --build
+}
+
+wait_for_app() {
+  log "Waiting for app at ${HEALTH_URL} (timeout: ${HEALTH_TIMEOUT_SEC}s)..."
+  local deadline=$((SECONDS + HEALTH_TIMEOUT_SEC))
+  while (( SECONDS < deadline )); do
+    if curl -sf "${HEALTH_URL}" >/dev/null; then
+      log "Application is ready"
+      return 0
+    fi
+    sleep 2
+  done
+
+  log "Application failed to become ready; recent logs:"
+  docker compose "${COMPOSE_FILES[@]}" logs --tail=50 || true
+  die "Health check failed: ${HEALTH_URL}"
+}
+
+main() {
+  if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+    usage
+    exit 0
+  fi
+
+  require_root
+  ensure_secret_key
+  install_packages
+  install_docker
+
+  deploy_project
+  start_compose
+  wait_for_app
+
+  log "Deployment complete."
+  log "  Directory: ${DEPLOY_DIR}"
+  log "  URL:       http://$(hostname -I 2>/dev/null | awk '{print $1}' || echo '127.0.0.1'):5000"
+  log "  Next step: create a user with:"
+  log "    cd ${DEPLOY_DIR} && docker compose ${COMPOSE_FILES[*]} exec web flask users-create"
+}
+
+main "$@"
