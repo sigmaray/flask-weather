@@ -210,6 +210,22 @@ install_packages() {
   apt-get install -y -qq git curl ca-certificates openssl rsync postgresql-client
 }
 
+install_etckeeper() {
+  if [[ "${SETUP_SKIP_APT}" == "1" ]]; then
+    return 0
+  fi
+
+  if command -v etckeeper >/dev/null 2>&1; then
+    log "etckeeper is already installed"
+    return 0
+  fi
+
+  log "Installing etckeeper..."
+  export DEBIAN_FRONTEND=noninteractive
+  apt-get update -qq
+  apt-get install -y -qq etckeeper
+}
+
 install_docker() {
   if [[ "${SETUP_SKIP_DOCKER_INSTALL}" == "1" ]]; then
     log "Skipping Docker installation (SETUP_SKIP_DOCKER_INSTALL=1)"
@@ -431,6 +447,7 @@ main() {
   require_root
   setup_swap
   install_packages
+  install_etckeeper
   install_docker
 
   local deploy_action
