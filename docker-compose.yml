@@ -1,34 +1,12 @@
 services:
-  db:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: weather
-      POSTGRES_PASSWORD: weather
-      POSTGRES_DB: weather
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U weather -d weather"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
   web:
     build: .
     ports:
       - "5000:5000"
     environment:
-      DATABASE_URL: postgresql://weather:weather@db:5432/weather
-      SECRET_KEY: dev-secret-change-in-production
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
+      SECRET_KEY: ${SECRET_KEY:-dev-secret-change-in-production}
       FLASK_APP: wsgi:app
-    depends_on:
-      db:
-        condition: service_healthy
     command: >
       sh -c "flask db upgrade &&
              gunicorn --bind 0.0.0.0:5000 --workers 2 wsgi:app"
-
-volumes:
-  postgres_data:
