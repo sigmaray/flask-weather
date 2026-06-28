@@ -8,7 +8,7 @@
 #   sudo bash docs/example-postgresql-docker-compose/scripts/setup-vps.sh --swap
 #
 # Environment variables:
-#   DEPLOY_DIR                  Target directory (default: /opt/d/postgresql)
+#   DEPLOY_DIR                  Target directory (default: ~/r/d/postgresql)
 #   REPO_URL                    Git clone URL (default: https://github.com/sigmaray/flask-weather.git)
 #   GIT_REF                     Branch, tag, or commit to deploy (default: main)
 #   REPO_SUBPATH                Path inside the repo to sync (default: docs/example-postgresql-docker-compose)
@@ -28,7 +28,7 @@
 
 set -euo pipefail
 
-DEPLOY_DIR="${DEPLOY_DIR:-/opt/d/postgresql}"
+DEPLOY_DIR="${DEPLOY_DIR:-${HOME}/r/d/postgresql}"
 REPO_URL="${REPO_URL:-https://github.com/sigmaray/flask-weather.git}"
 GIT_REF="${GIT_REF:-main}"
 REPO_SUBPATH="${REPO_SUBPATH:-docs/example-postgresql-docker-compose}"
@@ -66,7 +66,7 @@ Options:
   --swap                      Create and enable a swap file if swap is not configured
 
 Environment variables:
-  DEPLOY_DIR                  Deployment directory (default: /opt/d/postgresql)
+  DEPLOY_DIR                  Deployment directory (default: ~/r/d/postgresql)
   REPO_URL                    Git repository URL
   GIT_REF                     Branch, tag, or commit (default: main)
   REPO_SUBPATH                Subdirectory inside the repo to deploy

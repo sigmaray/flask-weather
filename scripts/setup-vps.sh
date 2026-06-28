@@ -8,7 +8,7 @@
 #   sudo bash scripts/setup-vps.sh --swap
 #
 # Environment variables:
-#   DEPLOY_DIR                  Target directory (default: /opt/d/flask-weather)
+#   DEPLOY_DIR                  Target directory (default: ~/r/d/flask-weather)
 #   REPO_URL                    Git clone URL (default: https://github.com/sigmaray/flask-weather.git)
 #   GIT_REF                     Branch, tag, or commit to deploy (default: main)
 #   DATABASE_URL                PostgreSQL on the host (default: postgres@host.docker.internal:5432/weather)
@@ -27,7 +27,7 @@
 
 set -euo pipefail
 
-DEPLOY_DIR="${DEPLOY_DIR:-/opt/d/flask-weather}"
+DEPLOY_DIR="${DEPLOY_DIR:-${HOME}/r/d/flask-weather}"
 REPO_URL="${REPO_URL:-https://github.com/sigmaray/flask-weather.git}"
 GIT_REF="${GIT_REF:-main}"
 DATABASE_URL="${DATABASE_URL:-postgresql://postgres:postgres@host.docker.internal:5432/weather}"
@@ -64,7 +64,7 @@ Options:
   --swap                      Create and enable a swap file if swap is not configured
 
 Environment variables:
-  DEPLOY_DIR                  Deployment directory (default: /opt/d/flask-weather)
+  DEPLOY_DIR                  Deployment directory (default: ~/r/d/flask-weather)
   REPO_URL                    Git repository URL
   GIT_REF                     Branch, tag, or commit (default: main)
   DATABASE_URL                Host PostgreSQL URL (default: postgres@host.docker.internal:5432/weather)

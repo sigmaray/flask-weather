@@ -108,11 +108,11 @@ sudo bash docs/example-postgresql-docker-compose/scripts/setup-vps.sh
 sudo bash docs/example-postgresql-docker-compose/scripts/setup-vps.sh --swap
 ```
 
-The script deploys to `/opt/d/postgresql` by default, generates `POSTGRES_PASSWORD` in `.env` when unset, and starts the stack. Override with environment variables (see script header).
+The script deploys to `~/r/d/postgresql` by default, generates `POSTGRES_PASSWORD` in `.env` when unset, and starts the stack. Override with environment variables (see script header).
 
 Manual alternative:
 
-1. Copy `docs/example-postgresql-docker-compose/` to the server (e.g. `/opt/d/postgresql`).
+1. Copy `docs/example-postgresql-docker-compose/` to the server (e.g. `~/r/d/postgresql`).
 2. Create `.env` with a production password.
 3. Run `docker compose up -d`.
 
