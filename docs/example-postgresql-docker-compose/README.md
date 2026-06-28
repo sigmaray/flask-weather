@@ -79,7 +79,7 @@ cp init/20-extra-databases.sh.example init/20-myapp.sh
 chmod +x init/20-myapp.sh
 ```
 
-Scripts in `init/` run **only on first initialization** (empty `postgres_data` volume). If the cluster is already up, use `create-database.sh` instead.
+Scripts in `init/` run **only on first initialization** (empty `volume-postgres` volume). If the cluster is already up, use `create-database.sh` instead.
 
 ## Operations
 
