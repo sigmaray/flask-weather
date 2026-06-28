@@ -12,16 +12,17 @@
 #   REPO_URL                    Git clone URL (default: https://github.com/sigmaray/flask-weather.git)
 #   GIT_REF                     Branch, tag, or commit to deploy (default: main)
 #   DATABASE_URL                PostgreSQL on the host (default: weather@host.docker.internal:5432/weather)
-#   SECRET_KEY                  Flask secret key (default: auto-generated on VPS)
+#   SECRET_KEY                  Flask secret key (default: auto-generated and saved in DEPLOY_DIR/.env)
 #   SETUP_SKIP_APT              Set to 1 to skip apt-get (useful in CI where git is preinstalled)
 #   SETUP_SKIP_DOCKER_INSTALL   Set to 1 to skip Docker installation (useful in CI)
+#   SETUP_SKIP_PG_CHECK         Set to 1 to skip PostgreSQL reachability check
 #   SETUP_SOURCE_DIR            Copy project from this path instead of cloning (CI / local test)
 #   SETUP_ALLOW_NON_ROOT        Set to 1 to skip root check (CI with passwordless sudo)
 #   SETUP_FORCE                 Set to 1 to redeploy even when already at GIT_REF and running
 #   SETUP_SWAP                  Set to 1 to configure swap (same as --swap)
 #   SETUP_SWAP_SIZE_MB          Swap file size in megabytes (default: 2048)
 #   SETUP_SWAP_FILE             Swap file path (default: /swapfile)
-#   HEALTH_URL                  URL for readiness probe (default: http://127.0.0.1:5000/auth/login)
+#   HEALTH_URL                  URL for readiness probe (default: http://127.0.0.1:5000/health)
 #   HEALTH_TIMEOUT_SEC          Seconds to wait for the app (default: 120)
 
 set -euo pipefail
@@ -32,14 +33,17 @@ GIT_REF="${GIT_REF:-main}"
 DATABASE_URL="${DATABASE_URL:-postgresql://weather:weather@host.docker.internal:5432/weather}"
 SETUP_SKIP_APT="${SETUP_SKIP_APT:-0}"
 SETUP_SKIP_DOCKER_INSTALL="${SETUP_SKIP_DOCKER_INSTALL:-0}"
+SETUP_SKIP_PG_CHECK="${SETUP_SKIP_PG_CHECK:-0}"
 SETUP_SOURCE_DIR="${SETUP_SOURCE_DIR:-}"
 SETUP_ALLOW_NON_ROOT="${SETUP_ALLOW_NON_ROOT:-0}"
 SETUP_FORCE="${SETUP_FORCE:-0}"
 SETUP_SWAP="${SETUP_SWAP:-0}"
 SETUP_SWAP_SIZE_MB="${SETUP_SWAP_SIZE_MB:-2048}"
 SETUP_SWAP_FILE="${SETUP_SWAP_FILE:-/swapfile}"
-HEALTH_URL="${HEALTH_URL:-http://127.0.0.1:5000/auth/login}"
+HEALTH_URL="${HEALTH_URL:-http://127.0.0.1:5000/health}"
 HEALTH_TIMEOUT_SEC="${HEALTH_TIMEOUT_SEC:-120}"
+
+DEPLOY_ENV_FILE="${DEPLOY_DIR}/.env"
 
 log() {
   printf '[setup-vps] %s\n' "$*" >&2
@@ -64,9 +68,10 @@ Environment variables:
   REPO_URL                    Git repository URL
   GIT_REF                     Branch, tag, or commit (default: main)
   DATABASE_URL                Host PostgreSQL URL (default: weather@host.docker.internal:5432/weather)
-  SECRET_KEY                  Flask session secret (random if unset on VPS)
+  SECRET_KEY                  Flask session secret (saved to DEPLOY_DIR/.env when unset)
   SETUP_SKIP_APT              Skip apt-get when set to 1
   SETUP_SKIP_DOCKER_INSTALL   Skip Docker install when set to 1
+  SETUP_SKIP_PG_CHECK         Skip PostgreSQL reachability check when set to 1
   SETUP_SOURCE_DIR            Use existing directory instead of git clone
   SETUP_ALLOW_NON_ROOT        Allow running without root (for CI)
   SETUP_FORCE                 Redeploy even when already at GIT_REF and running
@@ -105,22 +110,96 @@ require_root() {
   fi
 }
 
-ensure_secret_key() {
+read_env_value() {
+  local key="$1"
+  local file="$2"
+  [[ -f "${file}" ]] || return 1
+  grep -E "^${key}=" "${file}" | tail -1 | cut -d= -f2-
+}
+
+ensure_deploy_env() {
+  [[ -d "${DEPLOY_DIR}" ]] || die "Deploy directory missing: ${DEPLOY_DIR}"
+
+  local existing_secret=""
+  existing_secret="$(read_env_value SECRET_KEY "${DEPLOY_ENV_FILE}" 2>/dev/null || true)"
+
   if [[ -z "${SECRET_KEY:-}" ]]; then
-    if command -v openssl >/dev/null 2>&1; then
+    if [[ -n "${existing_secret}" ]]; then
+      SECRET_KEY="${existing_secret}"
+      log "Using SECRET_KEY from ${DEPLOY_ENV_FILE}"
+    elif command -v openssl >/dev/null 2>&1; then
       SECRET_KEY="$(openssl rand -hex 32)"
+      log "Generated new SECRET_KEY"
     else
       SECRET_KEY="dev-secret-change-in-production"
       log "openssl not found; using default SECRET_KEY — change it in production"
     fi
   fi
   export SECRET_KEY
+
+  local tmp
+  tmp="$(mktemp)"
+  chmod 600 "${tmp}"
+  {
+    printf 'DATABASE_URL=%s\n' "${DATABASE_URL}"
+    printf 'SECRET_KEY=%s\n' "${SECRET_KEY}"
+  } > "${tmp}"
+  mv "${tmp}" "${DEPLOY_ENV_FILE}"
+  chmod 600 "${DEPLOY_ENV_FILE}"
+  log "Wrote ${DEPLOY_ENV_FILE}"
+}
+
+parse_database_url() {
+  local url="$1"
+  if [[ "${url}" =~ postgres(ql)?://([^:@/]+):([^@/]*)@([^:/]+):([0-9]+)/([^?]+) ]]; then
+    PG_USER="${BASH_REMATCH[2]}"
+    PG_PASS="${BASH_REMATCH[3]}"
+    PG_HOST="${BASH_REMATCH[4]}"
+    PG_PORT="${BASH_REMATCH[5]}"
+    PG_DB="${BASH_REMATCH[6]}"
+  else
+    die "Cannot parse DATABASE_URL: ${url}"
+  fi
+
+  if [[ "${PG_HOST}" == "host.docker.internal" ]]; then
+    PG_CHECK_HOST="127.0.0.1"
+  else
+    PG_CHECK_HOST="${PG_HOST}"
+  fi
+}
+
+check_postgres() {
+  if [[ "${SETUP_SKIP_PG_CHECK}" == "1" ]]; then
+    log "Skipping PostgreSQL check (SETUP_SKIP_PG_CHECK=1)"
+    return 0
+  fi
+
+  parse_database_url "${DATABASE_URL}"
+  log "Checking PostgreSQL at ${PG_CHECK_HOST}:${PG_PORT} (database: ${PG_DB})..."
+
+  if command -v pg_isready >/dev/null 2>&1; then
+    if pg_isready -h "${PG_CHECK_HOST}" -p "${PG_PORT}" -U "${PG_USER}" -d "${PG_DB}" -t 5 -q 2>/dev/null; then
+      log "PostgreSQL is reachable"
+      return 0
+    fi
+  elif command -v nc >/dev/null 2>&1; then
+    if nc -z -w 5 "${PG_CHECK_HOST}" "${PG_PORT}" 2>/dev/null; then
+      log "PostgreSQL port is open (install postgresql-client for a stronger check)"
+      return 0
+    fi
+  elif timeout 5 bash -c "echo >/dev/tcp/${PG_CHECK_HOST}/${PG_PORT}" 2>/dev/null; then
+    log "PostgreSQL port is open"
+    return 0
+  fi
+
+  die "PostgreSQL is not reachable at ${PG_CHECK_HOST}:${PG_PORT}. Install and configure PostgreSQL on the host (user/db from DATABASE_URL) before running this script."
 }
 
 install_packages() {
   if [[ "${SETUP_SKIP_APT}" == "1" ]]; then
     command -v git >/dev/null 2>&1 || die "git not found (install it or unset SETUP_SKIP_APT)"
     command -v curl >/dev/null 2>&1 || die "curl not found (install it or unset SETUP_SKIP_APT)"
+    command -v rsync >/dev/null 2>&1 || die "rsync not found (install it or unset SETUP_SKIP_APT)"
     log "Skipping apt-get (SETUP_SKIP_APT=1)"
     return 0
   fi
@@ -128,7 +207,7 @@ install_packages() {
   log "Installing git and prerequisites..."
   export DEBIAN_FRONTEND=noninteractive
   apt-get update -qq
-  apt-get install -y -qq git curl ca-certificates openssl
+  apt-get install -y -qq git curl ca-certificates openssl rsync postgresql-client
 }
 
 install_docker() {
@@ -157,7 +236,7 @@ swap_is_configured() {
 
 ensure_swap_in_fstab() {
   local swap_file="$1"
-  if grep -q "[[:space:]]${swap_file}[[:space:]]" /etc/fstab 2>/dev/null; then
+  if grep -qF "${swap_file}" /etc/fstab 2>/dev/null; then
     return 0
   fi
   echo "${swap_file} none swap sw 0 0" >> /etc/fstab
@@ -195,8 +274,17 @@ setup_swap() {
   swapon --show >&2 || true
 }
 
+fetch_existing_clone() {
+  if git -C "${DEPLOY_DIR}" fetch --depth 1 origin "${GIT_REF}" 2>/dev/null; then
+    return 0
+  fi
+  git -C "${DEPLOY_DIR}" fetch --depth 1 origin "refs/tags/${GIT_REF}:refs/tags/${GIT_REF}"
+}
+
 remote_ref_sha() {
-  git -C "${DEPLOY_DIR}" rev-parse "origin/${GIT_REF}" 2>/dev/null \
+  git -C "${DEPLOY_DIR}" rev-parse FETCH_HEAD 2>/dev/null \
+    || git -C "${DEPLOY_DIR}" rev-parse "refs/tags/${GIT_REF}" 2>/dev/null \
+    || git -C "${DEPLOY_DIR}" rev-parse "origin/${GIT_REF}" 2>/dev/null \
     || git -C "${DEPLOY_DIR}" rev-parse "${GIT_REF}"
 }
 
@@ -205,14 +293,42 @@ project_worktree_clean() {
     && git -C "${DEPLOY_DIR}" diff --cached --quiet HEAD
 }
 
-fetch_existing_clone() {
-  git -C "${DEPLOY_DIR}" fetch --depth 1 origin "${GIT_REF}"
+reset_existing_clone() {
+  local target_sha
+  target_sha="$(remote_ref_sha)"
+  git -C "${DEPLOY_DIR}" checkout --detach "${target_sha}"
+  git -C "${DEPLOY_DIR}" reset --hard "${target_sha}"
 }
 
-reset_existing_clone() {
-  git -C "${DEPLOY_DIR}" checkout "${GIT_REF}"
-  git -C "${DEPLOY_DIR}" reset --hard "origin/${GIT_REF}" 2>/dev/null \
-    || git -C "${DEPLOY_DIR}" reset --hard "${GIT_REF}"
+clone_project() {
+  mkdir -p "$(dirname "${DEPLOY_DIR}")"
+  if git clone --branch "${GIT_REF}" --depth 1 "${REPO_URL}" "${DEPLOY_DIR}" 2>/dev/null; then
+    return 0
+  fi
+
+  log "Shallow branch clone failed; fetching ${GIT_REF} by ref..."
+  git clone --depth 1 "${REPO_URL}" "${DEPLOY_DIR}"
+  fetch_existing_clone
+  local target_sha
+  target_sha="$(remote_ref_sha)"
+  git -C "${DEPLOY_DIR}" checkout --detach "${target_sha}"
+}
+
+deploy_from_source() {
+  [[ -d "${SETUP_SOURCE_DIR}" ]] || die "SETUP_SOURCE_DIR does not exist: ${SETUP_SOURCE_DIR}"
+  mkdir -p "${DEPLOY_DIR}"
+
+  local rsync_opts=(-a --delete --exclude '.env')
+  local changes
+  changes="$(rsync "${rsync_opts[@]}" --dry-run --itemize-changes "${SETUP_SOURCE_DIR}/" "${DEPLOY_DIR}/" | wc -l)"
+  if [[ "${changes}" -eq 0 ]]; then
+    log "Source tree already synced to ${DEPLOY_DIR}"
+    printf 'current'
+    return 0
+  fi
+
+  rsync "${rsync_opts[@]}" "${SETUP_SOURCE_DIR}/" "${DEPLOY_DIR}/"
+  printf 'sync'
 }
 
 compose_stack_running() {
@@ -255,11 +371,7 @@ deploy_project() {
   log "Deploying project to ${DEPLOY_DIR}..."
 
   if [[ -n "${SETUP_SOURCE_DIR}" ]]; then
-    [[ -d "${SETUP_SOURCE_DIR}" ]] || die "SETUP_SOURCE_DIR does not exist: ${SETUP_SOURCE_DIR}"
-    rm -rf "${DEPLOY_DIR}"
-    mkdir -p "${DEPLOY_DIR}"
-    cp -a "${SETUP_SOURCE_DIR}/." "${DEPLOY_DIR}/"
-    printf 'sync'
+    deploy_from_source
     return 0
   fi
 
@@ -268,15 +380,21 @@ deploy_project() {
     return 0
   fi
 
-  mkdir -p "$(dirname "${DEPLOY_DIR}")"
-  git clone --branch "${GIT_REF}" --depth 1 "${REPO_URL}" "${DEPLOY_DIR}"
+  if [[ -d "${DEPLOY_DIR}" ]] && [[ -n "$(ls -A "${DEPLOY_DIR}" 2>/dev/null)" ]]; then
+    die "${DEPLOY_DIR} exists but is not a git repository. Remove or rename it, then re-run."
+  fi
+
+  if [[ -d "${DEPLOY_DIR}" ]]; then
+    rmdir "${DEPLOY_DIR}" 2>/dev/null \
+      || die "${DEPLOY_DIR} exists but is not a git repository and is not empty."
+  fi
+
+  clone_project
   printf 'sync'
 }
 
 start_compose() {
   local rebuild="${1:-1}"
-
-  export DATABASE_URL
 
   if [[ "${rebuild}" == "1" ]]; then
     log "Building and starting docker compose stack..."
@@ -302,6 +420,7 @@ wait_for_app() {
   done
 
   log "Application failed to become ready; recent logs:"
+  cd "${DEPLOY_DIR}"
   docker compose logs --tail=50 || true
   die "Health check failed: ${HEALTH_URL}"
 }
@@ -310,13 +429,15 @@ main() {
   parse_args "$@"
 
   require_root
-  ensure_secret_key
   setup_swap
   install_packages
   install_docker
 
   local deploy_action
   deploy_action="$(deploy_project)"
+
+  ensure_deploy_env
+  check_postgres
 
   if [[ "${SETUP_FORCE}" == "1" ]]; then
     log "SETUP_FORCE=1 — rebuilding and restarting the stack"

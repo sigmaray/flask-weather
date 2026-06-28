@@ -3,7 +3,8 @@ from __future__ import annotations
 import os
 from typing import Any
 
-from flask import Flask, redirect, url_for
+from flask import Flask, jsonify, redirect, url_for
+from sqlalchemy import text
 from flask_login import current_user
 from werkzeug.exceptions import HTTPException
 
@@ -56,6 +57,16 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
         if current_user.is_authenticated:
             return redirect(url_for("admin_cities.index_view"))
         return redirect(url_for("auth.login"))
+
+    @app.get("/health")
+    def health() -> Any:
+        try:
+            db.session.execute(text("SELECT 1"))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            return jsonify(status="error", detail="database unavailable"), 503
+        return jsonify(status="ok"), 200
 
     @app.errorhandler(Exception)
     def log_unhandled_exception(exc: Exception) -> Any:

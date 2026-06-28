@@ -41,9 +41,30 @@ jobs:
           chmod +x scripts/setup-vps.sh
           sudo -E bash scripts/setup-vps.sh
 
-      - name: Verify login page responds
+      - name: Verify health endpoint
         run: |
-          curl -sf http://127.0.0.1:5000/auth/login | grep -qi login
+          curl -sf http://127.0.0.1:5000/health | grep -q '"status":"ok"'
+
+      - name: Verify deploy env file
+        run: |
+          test -f /tmp/flask-weather-deploy/.env
+          grep -q '^SECRET_KEY=ci-test-secret' /tmp/flask-weather-deploy/.env
+          grep -q '^DATABASE_URL=' /tmp/flask-weather-deploy/.env
+
+      - name: Run setup script again (idempotency)
+        env:
+          DEPLOY_DIR: /tmp/flask-weather-deploy
+          SETUP_SKIP_APT: "1"
+          SETUP_SKIP_DOCKER_INSTALL: "1"
+          SETUP_SOURCE_DIR: ${{ github.workspace }}
+          DATABASE_URL: postgresql://weather:weather@host.docker.internal:5432/weather
+          HEALTH_TIMEOUT_SEC: "180"
+        run: |
+          sudo -E bash scripts/setup-vps.sh 2>&1 | tee /tmp/setup-run2.log
+          grep -q 'skipping redeploy' /tmp/setup-run2.log
+
+      - name: Verify SECRET_KEY persisted across runs
+        run: grep -q '^SECRET_KEY=ci-test-secret' /tmp/flask-weather-deploy/.env
 
       - name: Show container status on failure
         if: failure()
