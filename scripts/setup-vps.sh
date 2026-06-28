@@ -11,6 +11,7 @@
 #   DEPLOY_DIR                  Target directory (default: /opt/flask-weather)
 #   REPO_URL                    Git clone URL (default: https://github.com/sigmaray/flask-weather.git)
 #   GIT_REF                     Branch, tag, or commit to deploy (default: main)
+#   DATABASE_URL                PostgreSQL on the host (default: weather@host.docker.internal:5432/weather)
 #   SECRET_KEY                  Flask secret key (default: auto-generated on VPS)
 #   SETUP_SKIP_APT              Set to 1 to skip apt-get (useful in CI where git is preinstalled)
 #   SETUP_SKIP_DOCKER_INSTALL   Set to 1 to skip Docker installation (useful in CI)
@@ -28,6 +29,7 @@ set -euo pipefail
 DEPLOY_DIR="${DEPLOY_DIR:-/opt/flask-weather}"
 REPO_URL="${REPO_URL:-https://github.com/sigmaray/flask-weather.git}"
 GIT_REF="${GIT_REF:-main}"
+DATABASE_URL="${DATABASE_URL:-postgresql://weather:weather@host.docker.internal:5432/weather}"
 SETUP_SKIP_APT="${SETUP_SKIP_APT:-0}"
 SETUP_SKIP_DOCKER_INSTALL="${SETUP_SKIP_DOCKER_INSTALL:-0}"
 SETUP_SOURCE_DIR="${SETUP_SOURCE_DIR:-}"
@@ -38,8 +40,6 @@ SETUP_SWAP_SIZE_MB="${SETUP_SWAP_SIZE_MB:-2048}"
 SETUP_SWAP_FILE="${SETUP_SWAP_FILE:-/swapfile}"
 HEALTH_URL="${HEALTH_URL:-http://127.0.0.1:5000/auth/login}"
 HEALTH_TIMEOUT_SEC="${HEALTH_TIMEOUT_SEC:-120}"
-
-COMPOSE_FILES=(-f docker-compose.yml -f docker-compose.with-pg.yml)
 
 log() {
   printf '[setup-vps] %s\n' "$*" >&2
@@ -63,6 +63,7 @@ Environment variables:
   DEPLOY_DIR                  Deployment directory (default: /opt/flask-weather)
   REPO_URL                    Git repository URL
   GIT_REF                     Branch, tag, or commit (default: main)
+  DATABASE_URL                Host PostgreSQL URL (default: weather@host.docker.internal:5432/weather)
   SECRET_KEY                  Flask session secret (random if unset on VPS)
   SETUP_SKIP_APT              Skip apt-get when set to 1
   SETUP_SKIP_DOCKER_INSTALL   Skip Docker install when set to 1
@@ -218,10 +219,9 @@ compose_stack_running() {
   [[ -d "${DEPLOY_DIR}" ]] || return 1
 
   local services
-  services="$(cd "${DEPLOY_DIR}" && docker compose "${COMPOSE_FILES[@]}" ps --status running --format '{{.Service}}' 2>/dev/null)" \
+  services="$(cd "${DEPLOY_DIR}" && docker compose ps --status running --format '{{.Service}}' 2>/dev/null)" \
     || return 1
   grep -qx 'web' <<<"${services}" || return 1
-  grep -qx 'db' <<<"${services}" || return 1
 }
 
 app_is_ready() {
@@ -276,16 +276,18 @@ deploy_project() {
 start_compose() {
   local rebuild="${1:-1}"
 
+  export DATABASE_URL
+
   if [[ "${rebuild}" == "1" ]]; then
     log "Building and starting docker compose stack..."
     cd "${DEPLOY_DIR}"
-    docker compose "${COMPOSE_FILES[@]}" up -d --build
+    docker compose up -d --build
     return 0
   fi
 
   log "Starting docker compose stack (no rebuild)..."
   cd "${DEPLOY_DIR}"
-  docker compose "${COMPOSE_FILES[@]}" up -d
+  docker compose up -d
 }
 
 wait_for_app() {
@@ -300,7 +302,7 @@ wait_for_app() {
   done
 
   log "Application failed to become ready; recent logs:"
-  docker compose "${COMPOSE_FILES[@]}" logs --tail=50 || true
+  docker compose logs --tail=50 || true
   die "Health check failed: ${HEALTH_URL}"
 }
 
@@ -338,7 +340,7 @@ main() {
   log "  Directory: ${DEPLOY_DIR}"
   log "  URL:       http://$(hostname -I 2>/dev/null | awk '{print $1}' || echo '127.0.0.1'):5000"
   log "  Next step: create a user with:"
-  log "    cd ${DEPLOY_DIR} && docker compose ${COMPOSE_FILES[*]} exec web flask users-create"
+  log "    cd ${DEPLOY_DIR} && docker compose exec web flask users-create"
 }
 
 main "$@"
