@@ -56,7 +56,8 @@ docs/example-postgresql-docker-compose/
 │   ├── 01-flask-weather.sh       # CREATE DATABASE weather (first start)
 │   └── 20-extra-databases.sh.example
 └── scripts/
-    └── create-database.sh        # add a database on a running server
+    ├── create-database.sh        # add a database on a running server
+    └── setup-vps.sh              # bootstrap Ubuntu VPS and deploy the stack
 ```
 
 ## Adding a database for a new project
@@ -98,14 +99,24 @@ docker compose exec postgres psql -U postgres
 
 ## VPS deployment
 
-Recommended order:
+Automated bootstrap (Ubuntu, git, Docker, compose stack):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/sigmaray/flask-weather/main/docs/example-postgresql-docker-compose/scripts/setup-vps.sh | sudo bash
+# or from a checkout:
+sudo bash docs/example-postgresql-docker-compose/scripts/setup-vps.sh
+sudo bash docs/example-postgresql-docker-compose/scripts/setup-vps.sh --swap
+```
+
+The script deploys to `/opt/postgresql` by default, generates `POSTGRES_PASSWORD` in `.env` when unset, and starts the stack. Override with environment variables (see script header).
+
+Manual alternative:
 
 1. Copy `docs/example-postgresql-docker-compose/` to the server (e.g. `/opt/postgresql`).
 2. Create `.env` with a production password.
 3. Run `docker compose up -d`.
-4. Deploy applications with `DATABASE_URL` pointing at `host.docker.internal`.
 
-For flask-weather, use [scripts/setup-vps.sh](../../scripts/setup-vps.sh) — the script expects PostgreSQL to already be reachable on the host.
+Then deploy applications with `DATABASE_URL` pointing at `host.docker.internal`. For flask-weather, use [scripts/setup-vps.sh](../../scripts/setup-vps.sh) — that script expects PostgreSQL to already be reachable on the host.
 
 ## Backups
 

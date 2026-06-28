@@ -1,4 +1,4 @@
-name: VPS setup script
+name: VPS setup scripts
 
 on:
   push:
@@ -70,3 +70,64 @@ jobs:
         if: failure()
         working-directory: /tmp/flask-weather-deploy
         run: docker compose ps && docker compose logs --tail=100
+
+  test-setup-postgresql:
+    name: Test PostgreSQL bootstrap script
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run setup script (CI mode)
+        env:
+          DEPLOY_DIR: /tmp/postgresql-deploy
+          SETUP_SKIP_APT: "1"
+          SETUP_SKIP_DOCKER_INSTALL: "1"
+          SETUP_SOURCE_DIR: ${{ github.workspace }}/docs/example-postgresql-docker-compose
+          POSTGRES_PASSWORD: ci-test-postgres-password
+          PG_READY_TIMEOUT_SEC: "120"
+        run: |
+          chmod +x docs/example-postgresql-docker-compose/scripts/setup-vps.sh
+          sudo -E bash docs/example-postgresql-docker-compose/scripts/setup-vps.sh
+
+      - name: Verify PostgreSQL is ready
+        working-directory: /tmp/postgresql-deploy
+        run: |
+          docker compose ps --status running | grep -q postgres
+          docker compose exec -T postgres pg_isready -U postgres -d postgres
+
+      - name: Verify weather database was created
+        working-directory: /tmp/postgresql-deploy
+        env:
+          PGPASSWORD: ci-test-postgres-password
+        run: |
+          docker compose exec -T postgres psql -U postgres -d postgres -tAc \
+            "SELECT 1 FROM pg_database WHERE datname = 'weather'" | grep -q 1
+
+      - name: Verify deploy env file
+        run: |
+          test -f /tmp/postgresql-deploy/.env
+          grep -q '^POSTGRES_PASSWORD=ci-test-postgres-password' /tmp/postgresql-deploy/.env
+          grep -q '^POSTGRES_USER=postgres' /tmp/postgresql-deploy/.env
+          grep -q '^POSTGRES_PORT=5432' /tmp/postgresql-deploy/.env
+
+      - name: Run setup script again (idempotency)
+        env:
+          DEPLOY_DIR: /tmp/postgresql-deploy
+          SETUP_SKIP_APT: "1"
+          SETUP_SKIP_DOCKER_INSTALL: "1"
+          SETUP_SOURCE_DIR: ${{ github.workspace }}/docs/example-postgresql-docker-compose
+          POSTGRES_PASSWORD: ci-test-postgres-password
+          PG_READY_TIMEOUT_SEC: "120"
+        run: |
+          sudo -E bash docs/example-postgresql-docker-compose/scripts/setup-vps.sh 2>&1 | tee /tmp/pg-setup-run2.log
+          grep -q 'skipping redeploy' /tmp/pg-setup-run2.log
+
+      - name: Verify POSTGRES_PASSWORD persisted across runs
+        run: grep -q '^POSTGRES_PASSWORD=ci-test-postgres-password' /tmp/postgresql-deploy/.env
+
+      - name: Show container status on failure
+        if: failure()
+        working-directory: /tmp/postgresql-deploy
+        run: docker compose ps && docker compose logs --tail=100 postgres
