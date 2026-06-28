@@ -124,6 +124,8 @@ For production-like serving locally:
 gunicorn --bind 0.0.0.0:5000 --workers 1 wsgi:app
 ```
 
+> **Gunicorn workers and the scheduler.** With `SCHEDULER_ENABLED=true` (the default), each gunicorn worker starts its own in-process APScheduler instance. Running more than one worker duplicates background weather fetches against the external API. Use `--workers 1` while the scheduler runs inside the web process. To scale HTTP workers, set `SCHEDULER_ENABLED=false` on web and run weather fetching separately (for example `flask fetch-weather` on a cron or a dedicated container).
+
 ## Admin panel
 
 After login you land on the **Cities** list. All sections live under `/admin`:
