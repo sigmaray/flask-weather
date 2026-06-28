@@ -121,7 +121,7 @@ flask run                 # http://localhost:5000
 Для локального запуска в production-подобном режиме:
 
 ```bash
-gunicorn --bind 0.0.0.0:5000 --workers 2 wsgi:app
+gunicorn --bind 0.0.0.0:5000 --workers 1 wsgi:app
 ```
 
 ## Панель администратора

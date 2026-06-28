@@ -121,7 +121,7 @@ flask run                 # http://localhost:5000
 For production-like serving locally:
 
 ```bash
-gunicorn --bind 0.0.0.0:5000 --workers 2 wsgi:app
+gunicorn --bind 0.0.0.0:5000 --workers 1 wsgi:app
 ```
 
 ## Admin panel
