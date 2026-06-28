@@ -11,7 +11,7 @@
 #   DEPLOY_DIR                  Target directory (default: /opt/flask-weather)
 #   REPO_URL                    Git clone URL (default: https://github.com/sigmaray/flask-weather.git)
 #   GIT_REF                     Branch, tag, or commit to deploy (default: main)
-#   DATABASE_URL                PostgreSQL on the host (default: weather@host.docker.internal:5432/weather)
+#   DATABASE_URL                PostgreSQL on the host (default: postgres@host.docker.internal:5432/weather)
 #   SECRET_KEY                  Flask secret key (default: auto-generated and saved in DEPLOY_DIR/.env)
 #   SETUP_SKIP_APT              Set to 1 to skip apt-get (useful in CI where git is preinstalled)
 #   SETUP_SKIP_DOCKER_INSTALL   Set to 1 to skip Docker installation (useful in CI)
@@ -30,7 +30,7 @@ set -euo pipefail
 DEPLOY_DIR="${DEPLOY_DIR:-/opt/flask-weather}"
 REPO_URL="${REPO_URL:-https://github.com/sigmaray/flask-weather.git}"
 GIT_REF="${GIT_REF:-main}"
-DATABASE_URL="${DATABASE_URL:-postgresql://weather:weather@host.docker.internal:5432/weather}"
+DATABASE_URL="${DATABASE_URL:-postgresql://postgres:postgres@host.docker.internal:5432/weather}"
 SETUP_SKIP_APT="${SETUP_SKIP_APT:-0}"
 SETUP_SKIP_DOCKER_INSTALL="${SETUP_SKIP_DOCKER_INSTALL:-0}"
 SETUP_SKIP_PG_CHECK="${SETUP_SKIP_PG_CHECK:-0}"
@@ -67,7 +67,7 @@ Environment variables:
   DEPLOY_DIR                  Deployment directory (default: /opt/flask-weather)
   REPO_URL                    Git repository URL
   GIT_REF                     Branch, tag, or commit (default: main)
-  DATABASE_URL                Host PostgreSQL URL (default: weather@host.docker.internal:5432/weather)
+  DATABASE_URL                Host PostgreSQL URL (default: postgres@host.docker.internal:5432/weather)
   SECRET_KEY                  Flask session secret (saved to DEPLOY_DIR/.env when unset)
   SETUP_SKIP_APT              Skip apt-get when set to 1
   SETUP_SKIP_DOCKER_INSTALL   Skip Docker install when set to 1

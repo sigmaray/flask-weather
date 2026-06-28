@@ -4,8 +4,8 @@ import os
 from typing import Any
 
 from flask import Flask, jsonify, redirect, url_for
-from sqlalchemy import text
 from flask_login import current_user
+from sqlalchemy import text
 from werkzeug.exceptions import HTTPException
 
 from app.extensions import db, login_manager, migrate
@@ -19,7 +19,7 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
     app.config.update(
         SECRET_KEY=os.environ.get("SECRET_KEY", "dev-secret-key"),
         SQLALCHEMY_DATABASE_URI=os.environ.get(
-            "DATABASE_URL", "postgresql://weather:weather@localhost:5432/weather"
+            "DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/weather"
         ),
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
         SCHEDULER_ENABLED=os.environ.get("SCHEDULER_ENABLED", "true").lower() == "true",

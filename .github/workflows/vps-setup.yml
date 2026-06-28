@@ -13,13 +13,13 @@ jobs:
       postgres:
         image: postgres:16-alpine
         env:
-          POSTGRES_USER: weather
-          POSTGRES_PASSWORD: weather
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
           POSTGRES_DB: weather
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U weather -d weather"
+          --health-cmd "pg_isready -U postgres -d weather"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -34,7 +34,7 @@ jobs:
           SETUP_SKIP_APT: "1"
           SETUP_SKIP_DOCKER_INSTALL: "1"
           SETUP_SOURCE_DIR: ${{ github.workspace }}
-          DATABASE_URL: postgresql://weather:weather@host.docker.internal:5432/weather
+          DATABASE_URL: postgresql://postgres:postgres@host.docker.internal:5432/weather
           SECRET_KEY: ci-test-secret
           HEALTH_TIMEOUT_SEC: "180"
         run: |
@@ -57,7 +57,7 @@ jobs:
           SETUP_SKIP_APT: "1"
           SETUP_SKIP_DOCKER_INSTALL: "1"
           SETUP_SOURCE_DIR: ${{ github.workspace }}
-          DATABASE_URL: postgresql://weather:weather@host.docker.internal:5432/weather
+          DATABASE_URL: postgresql://postgres:postgres@host.docker.internal:5432/weather
           HEALTH_TIMEOUT_SEC: "180"
         run: |
           sudo -E bash scripts/setup-vps.sh 2>&1 | tee /tmp/setup-run2.log

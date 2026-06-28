@@ -83,7 +83,7 @@ docker compose up -d db
 Default connection (matches `docker-compose.yml`):
 
 ```
-postgresql://weather:weather@localhost:5432/weather
+postgresql://postgres:postgres@localhost:5432/weather
 ```
 
 ### 3. Configuration
@@ -96,7 +96,7 @@ cp .env.example .env
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `DATABASE_URL` | `postgresql://weather:weather@localhost:5432/weather` | PostgreSQL connection string |
+| `DATABASE_URL` | `postgresql://postgres:postgres@localhost:5432/weather` | PostgreSQL connection string |
 | `SECRET_KEY` | `dev-secret-key` | Flask session signing key — **change in production** |
 | `SCHEDULER_ENABLED` | `true` | Set to `false` to disable background weather fetching |
 | `FLASK_DEBUG` | — | Set to `1` for Flask debug mode (local dev only) |
@@ -105,7 +105,7 @@ cp .env.example .env
 Export variables or load `.env` before running commands:
 
 ```bash
-export DATABASE_URL=postgresql://weather:weather@localhost:5432/weather
+export DATABASE_URL=postgresql://postgres:postgres@localhost:5432/weather
 export FLASK_APP=wsgi:app
 ```
 
@@ -198,8 +198,8 @@ mypy app wsgi.py
 Tests use a PostgreSQL database (same as CI):
 
 ```bash
-export DATABASE_URL=postgresql://weather:weather@localhost:5432/weather_test
-docker compose exec db psql -U weather -c "CREATE DATABASE weather_test;" 2>/dev/null || true
+export DATABASE_URL=postgresql://postgres:postgres@localhost:5432/weather_test
+docker compose exec db psql -U postgres -c "CREATE DATABASE weather_test;" 2>/dev/null || true
 pytest -v
 pytest -v --cov=app --cov-report=term-missing
 ```
@@ -210,7 +210,7 @@ Start the app locally, then run tests from the `e2e/` directory:
 
 ```bash
 # Terminal 1 — app
-export DATABASE_URL=postgresql://weather:weather@localhost:5432/weather_e2e
+export DATABASE_URL=postgresql://postgres:postgres@localhost:5432/weather_e2e
 flask db upgrade
 printf 'e2euser\ne2epass\ne2epass\n' | flask users-create
 flask run --port 5000
@@ -254,6 +254,6 @@ GitHub Actions (`.github/workflows/ci.yml`) runs on push/PR to `main`:
 ## Production notes
 
 - Set a strong `SECRET_KEY`.
-- Use a managed PostgreSQL instance and set `DATABASE_URL` accordingly.
+- Use a managed PostgreSQL instance and set `DATABASE_URL` accordingly. For a shared PostgreSQL 16 setup on a VPS (one instance, multiple Docker apps), see [docs/example-postgresql-docker-compose/README.md](docs/example-postgresql-docker-compose/README.md).
 - The Docker image runs `flask db upgrade` before Gunicorn on startup.
 - API and error logs are stored **in memory** and reset on process restart — they are intended for debugging, not long-term auditing.

@@ -83,7 +83,7 @@ docker compose up -d db
 Строка подключения по умолчанию (совпадает с `docker-compose.yml`):
 
 ```
-postgresql://weather:weather@localhost:5432/weather
+postgresql://postgres:postgres@localhost:5432/weather
 ```
 
 ### 3. Конфигурация
@@ -96,7 +96,7 @@ cp .env.example .env
 
 | Переменная | Значение по умолчанию | Описание |
 |------------|----------------------|----------|
-| `DATABASE_URL` | `postgresql://weather:weather@localhost:5432/weather` | Строка подключения к PostgreSQL |
+| `DATABASE_URL` | `postgresql://postgres:postgres@localhost:5432/weather` | Строка подключения к PostgreSQL |
 | `SECRET_KEY` | `dev-secret-key` | Ключ подписи сессий Flask — **обязательно смените в production** |
 | `SCHEDULER_ENABLED` | `true` | Установите `false`, чтобы отключить фоновый сбор погоды |
 | `FLASK_DEBUG` | — | Установите `1` для режима отладки Flask (только локально) |
@@ -105,7 +105,7 @@ cp .env.example .env
 Экспортируйте переменные или загрузите `.env` перед запуском команд:
 
 ```bash
-export DATABASE_URL=postgresql://weather:weather@localhost:5432/weather
+export DATABASE_URL=postgresql://postgres:postgres@localhost:5432/weather
 export FLASK_APP=wsgi:app
 ```
 
@@ -198,8 +198,8 @@ mypy app wsgi.py
 Тесты используют PostgreSQL (как в CI):
 
 ```bash
-export DATABASE_URL=postgresql://weather:weather@localhost:5432/weather_test
-docker compose exec db psql -U weather -c "CREATE DATABASE weather_test;" 2>/dev/null || true
+export DATABASE_URL=postgresql://postgres:postgres@localhost:5432/weather_test
+docker compose exec db psql -U postgres -c "CREATE DATABASE weather_test;" 2>/dev/null || true
 pytest -v
 pytest -v --cov=app --cov-report=term-missing
 ```
@@ -210,7 +210,7 @@ pytest -v --cov=app --cov-report=term-missing
 
 ```bash
 # Терминал 1 — приложение
-export DATABASE_URL=postgresql://weather:weather@localhost:5432/weather_e2e
+export DATABASE_URL=postgresql://postgres:postgres@localhost:5432/weather_e2e
 flask db upgrade
 printf 'e2euser\ne2epass\ne2epass\n' | flask users-create
 flask run --port 5000
@@ -254,6 +254,6 @@ GitHub Actions (`.github/workflows/ci.yml`) запускается при push/P
 ## Заметки для production
 
 - Задайте надёжный `SECRET_KEY`.
-- Используйте управляемый экземпляр PostgreSQL и соответствующий `DATABASE_URL`.
+- Используйте управляемый экземпляр PostgreSQL и соответствующий `DATABASE_URL`. Для общего экземпляра PostgreSQL 16 на VPS (один сервер, несколько Docker-приложений) см. [docs/example-postgresql-docker-compose/README.md](docs/example-postgresql-docker-compose/README.md).
 - Docker-образ выполняет `flask db upgrade` перед запуском Gunicorn.
 - Логи API и ошибок хранятся **в памяти** и сбрасываются при перезапуске процесса — они предназначены для отладки, а не для долгосрочного аудита.

@@ -11,13 +11,13 @@ jobs:
       postgres:
         image: postgres:16-alpine
         env:
-          POSTGRES_USER: weather
-          POSTGRES_PASSWORD: weather
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
           POSTGRES_DB: weather_test
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U weather -d weather_test"
+          --health-cmd "pg_isready -U postgres -d weather_test"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -44,7 +44,7 @@ jobs:
 
       - name: Pytest
         env:
-          DATABASE_URL: postgresql://weather:weather@localhost:5432/weather_test
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/weather_test
         run: pytest -v --cov=app --cov-report=term-missing
 
   e2e:
@@ -53,13 +53,13 @@ jobs:
       postgres:
         image: postgres:16-alpine
         env:
-          POSTGRES_USER: weather
-          POSTGRES_PASSWORD: weather
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
           POSTGRES_DB: weather_e2e
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U weather -d weather_e2e"
+          --health-cmd "pg_isready -U postgres -d weather_e2e"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -80,7 +80,7 @@ jobs:
 
       - name: Prepare database and start app
         env:
-          DATABASE_URL: postgresql://weather:weather@localhost:5432/weather_e2e
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/weather_e2e
           SECRET_KEY: e2e-secret
           SCHEDULER_ENABLED: "true"
           USE_VCR: "true"
