@@ -5,6 +5,7 @@
 #   curl -fsSL https://raw.githubusercontent.com/sigmaray/flask-weather/main/scripts/setup-vps.sh | bash
 #   # or
 #   sudo bash scripts/setup-vps.sh
+#   sudo bash scripts/setup-vps.sh --swap
 #
 # Environment variables:
 #   DEPLOY_DIR                  Target directory (default: /opt/flask-weather)
@@ -16,6 +17,9 @@
 #   SETUP_SOURCE_DIR            Copy project from this path instead of cloning (CI / local test)
 #   SETUP_ALLOW_NON_ROOT        Set to 1 to skip root check (CI with passwordless sudo)
 #   SETUP_FORCE                 Set to 1 to redeploy even when already at GIT_REF and running
+#   SETUP_SWAP                  Set to 1 to configure swap (same as --swap)
+#   SETUP_SWAP_SIZE_MB          Swap file size in megabytes (default: 2048)
+#   SETUP_SWAP_FILE             Swap file path (default: /swapfile)
 #   HEALTH_URL                  URL for readiness probe (default: http://127.0.0.1:5000/auth/login)
 #   HEALTH_TIMEOUT_SEC          Seconds to wait for the app (default: 120)
 
@@ -29,6 +33,9 @@ SETUP_SKIP_DOCKER_INSTALL="${SETUP_SKIP_DOCKER_INSTALL:-0}"
 SETUP_SOURCE_DIR="${SETUP_SOURCE_DIR:-}"
 SETUP_ALLOW_NON_ROOT="${SETUP_ALLOW_NON_ROOT:-0}"
 SETUP_FORCE="${SETUP_FORCE:-0}"
+SETUP_SWAP="${SETUP_SWAP:-0}"
+SETUP_SWAP_SIZE_MB="${SETUP_SWAP_SIZE_MB:-2048}"
+SETUP_SWAP_FILE="${SETUP_SWAP_FILE:-/swapfile}"
 HEALTH_URL="${HEALTH_URL:-http://127.0.0.1:5000/auth/login}"
 HEALTH_TIMEOUT_SEC="${HEALTH_TIMEOUT_SEC:-120}"
 
@@ -45,9 +52,12 @@ die() {
 
 usage() {
   cat <<'EOF'
-Usage: setup-vps.sh
+Usage: setup-vps.sh [--swap]
 
 Bootstrap Ubuntu, install git and Docker, deploy flask-weather, and start docker compose.
+
+Options:
+  --swap                      Create and enable a swap file if swap is not configured
 
 Environment variables:
   DEPLOY_DIR                  Deployment directory (default: /opt/flask-weather)
@@ -59,9 +69,30 @@ Environment variables:
   SETUP_SOURCE_DIR            Use existing directory instead of git clone
   SETUP_ALLOW_NON_ROOT        Allow running without root (for CI)
   SETUP_FORCE                 Redeploy even when already at GIT_REF and running
+  SETUP_SWAP                  Configure swap when set to 1 (same as --swap)
+  SETUP_SWAP_SIZE_MB          Swap file size in megabytes (default: 2048)
+  SETUP_SWAP_FILE             Swap file path (default: /swapfile)
   HEALTH_URL                  Readiness check URL
   HEALTH_TIMEOUT_SEC          Readiness timeout in seconds
 EOF
+}
+
+parse_args() {
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -h|--help)
+        usage
+        exit 0
+        ;;
+      --swap)
+        SETUP_SWAP=1
+        shift
+        ;;
+      *)
+        die "Unknown option: $1 (try --help)"
+        ;;
+    esac
+  done
 }
 
 require_root() {
@@ -115,6 +146,52 @@ install_docker() {
   log "Installing Docker..."
   curl -fsSL https://get.docker.com | sh
   systemctl enable --now docker
+}
+
+swap_is_configured() {
+  local swap_kb
+  swap_kb="$(awk '/^SwapTotal:/ {print $2}' /proc/meminfo)"
+  [[ "${swap_kb:-0}" -gt 0 ]]
+}
+
+ensure_swap_in_fstab() {
+  local swap_file="$1"
+  if grep -q "[[:space:]]${swap_file}[[:space:]]" /etc/fstab 2>/dev/null; then
+    return 0
+  fi
+  echo "${swap_file} none swap sw 0 0" >> /etc/fstab
+}
+
+setup_swap() {
+  if [[ "${SETUP_SWAP}" != "1" ]]; then
+    return 0
+  fi
+
+  if swap_is_configured; then
+    log "Swap is already configured — skipping"
+    swapon --show >&2 || true
+    return 0
+  fi
+
+  local swap_file="${SETUP_SWAP_FILE}"
+  local swap_mb="${SETUP_SWAP_SIZE_MB}"
+
+  log "Configuring ${swap_mb}MB swap at ${swap_file}..."
+
+  if [[ -f "${swap_file}" ]]; then
+    log "Swap file ${swap_file} exists — enabling it"
+  elif ! fallocate -l "${swap_mb}M" "${swap_file}" 2>/dev/null; then
+    log "fallocate failed; creating swap file with dd (this may take a while)..."
+    dd if=/dev/zero of="${swap_file}" bs=1M count="${swap_mb}" status=none
+  fi
+
+  chmod 600 "${swap_file}"
+  mkswap "${swap_file}" >/dev/null
+  swapon "${swap_file}"
+  ensure_swap_in_fstab "${swap_file}"
+
+  log "Swap enabled:"
+  swapon --show >&2 || true
 }
 
 remote_ref_sha() {
@@ -228,13 +305,11 @@ wait_for_app() {
 }
 
 main() {
-  if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
-    usage
-    exit 0
-  fi
+  parse_args "$@"
 
   require_root
   ensure_secret_key
+  setup_swap
   install_packages
   install_docker
 
