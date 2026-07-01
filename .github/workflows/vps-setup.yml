@@ -9,24 +9,23 @@ jobs:
   test-setup-vps:
     name: Test VPS bootstrap script
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: weather
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U postgres -d weather"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Start shared PostgreSQL on infra network
+        working-directory: docs/example-postgresql-docker-compose
+        env:
+          POSTGRES_PASSWORD: postgres
+        run: |
+          cp .env.example .env
+          sed -i 's/change-me-postgres-password/postgres/' .env
+          docker compose up -d
+          for i in $(seq 1 30); do
+            docker compose exec -T postgres pg_isready -U postgres -d weather -t 1 && break
+            sleep 1
+          done
 
       - name: Run setup script (CI mode)
         env:
@@ -34,7 +33,7 @@ jobs:
           SETUP_SKIP_APT: "1"
           SETUP_SKIP_DOCKER_INSTALL: "1"
           SETUP_SOURCE_DIR: ${{ github.workspace }}
-          DATABASE_URL: postgresql://postgres:postgres@host.docker.internal:5432/weather
+          DATABASE_URL: postgresql://postgres:postgres@postgresql:5432/weather
           SECRET_KEY: ci-test-secret
           HEALTH_TIMEOUT_SEC: "180"
         run: |
@@ -57,7 +56,7 @@ jobs:
           SETUP_SKIP_APT: "1"
           SETUP_SKIP_DOCKER_INSTALL: "1"
           SETUP_SOURCE_DIR: ${{ github.workspace }}
-          DATABASE_URL: postgresql://postgres:postgres@host.docker.internal:5432/weather
+          DATABASE_URL: postgresql://postgres:postgres@postgresql:5432/weather
           HEALTH_TIMEOUT_SEC: "180"
         run: |
           sudo -E bash scripts/setup-vps.sh 2>&1 | tee /tmp/setup-run2.log

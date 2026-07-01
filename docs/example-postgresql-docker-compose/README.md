@@ -2,7 +2,7 @@
 
 Shared PostgreSQL 16 for a production VPS. A single instance serves multiple projects: each project gets its own database, and all apps connect as the standard `postgres` user.
 
-Docker apps on the same host connect via `host.docker.internal:5432` (see [flask-weather](../../docker-compose.yml) `docker-compose.yml`).
+Docker apps on the same host join the `infra` network and connect to `postgresql:5432` (see [flask-weather](../../docker-compose.yml) `docker-compose.yml`).
 
 ## Quick start
 
@@ -22,19 +22,43 @@ docker compose exec postgres pg_isready -U postgres
 
 ## Connecting applications
 
-Connection string format:
+The host port is bound to `127.0.0.1` only — PostgreSQL is not exposed to the public internet. How you connect depends on where the app runs.
+
+### Docker apps on the same host (recommended)
+
+Join the `infra` network and connect to the `postgresql` container by name:
+
+```yaml
+services:
+  app:
+    networks:
+      - infra
+
+networks:
+  infra:
+    external: true
+    name: infra
+```
+
+Connection string (the `weather` database is created on first start):
 
 ```
-postgresql://postgres:<POSTGRES_PASSWORD>@host.docker.internal:<POSTGRES_PORT>/<database>
+postgresql://postgres:<POSTGRES_PASSWORD>@postgresql:5432/weather
 ```
 
-Example for [flask-weather](../../README.md) (the `weather` database is created on first start):
+Example for [flask-weather](../../README.md): set this value as `DATABASE_URL` in the project's `.env` file.
+
+### Apps on the host (not in Docker)
+
+Connect via the loopback address and the published host port:
 
 ```
-postgresql://postgres:<POSTGRES_PASSWORD>@host.docker.internal:5432/weather
+postgresql://postgres:<POSTGRES_PASSWORD>@127.0.0.1:<POSTGRES_PORT>/weather
 ```
 
-Set this value as `DATABASE_URL` in the project's `.env` file.
+### Do not use `host.docker.internal` on Linux
+
+On Linux, `host.docker.internal` does not reach PostgreSQL when the port is published on `127.0.0.1` only. Use the Docker network pattern above for containerized apps, or `127.0.0.1` for host-native apps.
 
 ## Environment variables
 
@@ -43,8 +67,6 @@ Set this value as `DATABASE_URL` in the project's `.env` file.
 | `POSTGRES_USER` | `postgres` | PostgreSQL user |
 | `POSTGRES_PASSWORD` | — | Password (required) |
 | `POSTGRES_PORT` | `5432` | Host port |
-
-The port is bound to `127.0.0.1` — PostgreSQL is not exposed to the public internet. Docker containers on the same host reach it via `host.docker.internal`.
 
 ## Layout
 
@@ -116,7 +138,7 @@ Manual alternative:
 2. Create `.env` with a production password.
 3. Run `docker compose up -d`.
 
-Then deploy applications with `DATABASE_URL` pointing at `host.docker.internal`. For flask-weather, use [scripts/setup-vps.sh](../../scripts/setup-vps.sh) — that script expects PostgreSQL to already be reachable on the host.
+Then deploy containerized applications on the `infra` network with `DATABASE_URL` pointing at `postgresql:5432`. For flask-weather, use [scripts/setup-vps.sh](../../scripts/setup-vps.sh) — that script expects the shared PostgreSQL stack to already be running.
 
 ## Backups
 

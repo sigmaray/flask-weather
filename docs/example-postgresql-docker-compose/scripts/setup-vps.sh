@@ -457,9 +457,9 @@ main() {
   log "Deployment complete."
   log "  Directory: ${DEPLOY_DIR}"
   log "  Port:      127.0.0.1:${POSTGRES_PORT}"
-  log "  Connect:   postgresql://${POSTGRES_USER}:<password>@host.docker.internal:${POSTGRES_PORT}/<database>"
-  log "  Example:   postgresql://${POSTGRES_USER}:<password>@host.docker.internal:${POSTGRES_PORT}/weather"
-  log "  Next step: deploy apps with DATABASE_URL pointing at host.docker.internal"
+  log "  Connect:   postgresql://${POSTGRES_USER}:<password>@postgresql:5432/<database>"
+  log "  Example:   postgresql://${POSTGRES_USER}:<password>@postgresql:5432/weather"
+  log "  Next step: deploy apps on network infra with DATABASE_URL pointing at postgresql:5432"
 }
 
 main "$@"

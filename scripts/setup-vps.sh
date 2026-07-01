@@ -11,7 +11,7 @@
 #   DEPLOY_DIR                  Target directory (default: ~/r/d/flask-weather)
 #   REPO_URL                    Git clone URL (default: https://github.com/sigmaray/flask-weather.git)
 #   GIT_REF                     Branch, tag, or commit to deploy (default: main)
-#   DATABASE_URL                PostgreSQL on the host (default: postgres@host.docker.internal:5432/weather)
+#   DATABASE_URL                Shared PostgreSQL (default: postgres@postgresql:5432/weather on network infra)
 #   SECRET_KEY                  Flask secret key (default: auto-generated and saved in DEPLOY_DIR/.env)
 #   SETUP_SKIP_APT              Set to 1 to skip apt-get (useful in CI where git is preinstalled)
 #   SETUP_SKIP_DOCKER_INSTALL   Set to 1 to skip Docker installation (useful in CI)
@@ -30,7 +30,7 @@ set -euo pipefail
 DEPLOY_DIR="${DEPLOY_DIR:-${HOME}/r/d/flask-weather}"
 REPO_URL="${REPO_URL:-https://github.com/sigmaray/flask-weather.git}"
 GIT_REF="${GIT_REF:-main}"
-DATABASE_URL="${DATABASE_URL:-postgresql://postgres:postgres@host.docker.internal:5432/weather}"
+DATABASE_URL="${DATABASE_URL:-postgresql://postgres:postgres@postgresql:5432/weather}"
 SETUP_SKIP_APT="${SETUP_SKIP_APT:-0}"
 SETUP_SKIP_DOCKER_INSTALL="${SETUP_SKIP_DOCKER_INSTALL:-0}"
 SETUP_SKIP_PG_CHECK="${SETUP_SKIP_PG_CHECK:-0}"
@@ -67,7 +67,7 @@ Environment variables:
   DEPLOY_DIR                  Deployment directory (default: ~/r/d/flask-weather)
   REPO_URL                    Git repository URL
   GIT_REF                     Branch, tag, or commit (default: main)
-  DATABASE_URL                Host PostgreSQL URL (default: postgres@host.docker.internal:5432/weather)
+  DATABASE_URL                PostgreSQL URL (default: postgres@postgresql:5432/weather on network infra)
   SECRET_KEY                  Flask session secret (saved to DEPLOY_DIR/.env when unset)
   SETUP_SKIP_APT              Skip apt-get when set to 1
   SETUP_SKIP_DOCKER_INSTALL   Skip Docker install when set to 1
@@ -168,6 +168,12 @@ parse_database_url() {
   fi
 }
 
+check_postgres_via_docker() {
+  local user="$1"
+  local db="$2"
+  docker exec postgresql pg_isready -U "${user}" -d "${db}" -t 5 -q 2>/dev/null
+}
+
 check_postgres() {
   if [[ "${SETUP_SKIP_PG_CHECK}" == "1" ]]; then
     log "Skipping PostgreSQL check (SETUP_SKIP_PG_CHECK=1)"
@@ -175,7 +181,15 @@ check_postgres() {
   fi
 
   parse_database_url "${DATABASE_URL}"
-  log "Checking PostgreSQL at ${PG_CHECK_HOST}:${PG_PORT} (database: ${PG_DB})..."
+  log "Checking PostgreSQL at ${PG_HOST}:${PG_PORT} (database: ${PG_DB})..."
+
+  if [[ "${PG_HOST}" == "postgresql" ]]; then
+    if check_postgres_via_docker "${PG_USER}" "${PG_DB}"; then
+      log "PostgreSQL is reachable (container postgresql on network infra)"
+      return 0
+    fi
+    die "PostgreSQL container 'postgresql' is not reachable. Start the shared PostgreSQL stack on network infra before deploying flask-weather."
+  fi
 
   if command -v pg_isready >/dev/null 2>&1; then
     if pg_isready -h "${PG_CHECK_HOST}" -p "${PG_PORT}" -U "${PG_USER}" -d "${PG_DB}" -t 5 -q 2>/dev/null; then
