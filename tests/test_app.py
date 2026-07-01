@@ -7,7 +7,7 @@ from flask.testing import FlaskClient
 
 from app.extensions import db
 from app.memory_log import get_app_errors
-from app.models import City, User, OmWeatherRecord
+from app.models import City, OmWeatherRecord, User
 
 
 def test_login_page_accessible(client: FlaskClient) -> None:

@@ -8,7 +8,7 @@ from sqlalchemy.exc import IntegrityError
 
 from app.extensions import db
 from app.memory_log import log_app_error, weather_api_get
-from app.models import AppSettings, City, OwmWeatherRecord, OmWeatherRecord
+from app.models import AppSettings, City, OmWeatherRecord, OwmWeatherRecord
 from app.services.geocoding import GeocodingError, geocode_city
 
 OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast"

@@ -461,7 +461,7 @@ class AppSettingsAdmin(SecureModelView):
 class ToolsAdmin(SecureBaseView):
     @expose("/")
     def index(self) -> Any:
-        from app.models import City, OmWeatherRecord, OwmWeatherRecord, User
+        from app.models import City, OmWeatherRecord, User
 
         return self.render(
             "admin/tools.html",

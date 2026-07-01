@@ -8,13 +8,13 @@ from app.admin_views import (
     AppErrorLogAdmin,
     AppSettingsAdmin,
     CityAdmin,
+    OmWeatherRecordAdmin,
     OwmWeatherRecordAdmin,
     SchedulerAdmin,
     ToolsAdmin,
     UserAdmin,
     WeatherApiLogAdmin,
     WeatherMapAdmin,
-    OmWeatherRecordAdmin,
 )
 from app.extensions import db
 from app.models import AppSettings, City, OmWeatherRecord, OwmWeatherRecord, User

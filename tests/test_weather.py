@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from app.extensions import db
-from app.models import AppSettings, City, OwmWeatherRecord, OmWeatherRecord
+from app.models import AppSettings, City, OmWeatherRecord, OwmWeatherRecord
 from app.services.weather import (
     HPA_TO_MMHG,
     WeatherFetchError,
