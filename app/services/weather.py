@@ -1,17 +1,18 @@
 from __future__ import annotations
 
-from datetime import UTC, datetime
-from typing import Any
+from datetime import UTC, datetime, timedelta
+from typing import Any, cast
 
 import requests
 from sqlalchemy.exc import IntegrityError
 
 from app.extensions import db
 from app.memory_log import log_app_error, weather_api_get
-from app.models import City, WeatherRecord
+from app.models import AppSettings, City, OwmWeatherRecord, OmWeatherRecord
 from app.services.geocoding import GeocodingError, geocode_city
 
 OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast"
+OPENWEATHERMAP_URL = "https://api.openweathermap.org/data/2.5/weather"
 HPA_TO_MMHG = 0.750061683
 
 
@@ -74,16 +75,12 @@ def _daily_uv_index(data: dict[str, Any]) -> float | None:
     return _optional_float(values[0])
 
 
-def fetch_weather_for_city(city: City) -> WeatherRecord:
-    try:
-        latitude, longitude = ensure_city_coordinates(city)
-    except GeocodingError as exc:
-        log_app_error(
-            "weather.fetch",
-            f"Geocoding failed for city {city.id}: {exc}",
-            exc,
-        )
-        raise WeatherFetchError(str(exc)) from exc
+def _fetch_open_meteo_for_city(
+    city: City,
+    latitude: float,
+    longitude: float,
+    recorded_at: datetime,
+) -> OmWeatherRecord | None:
     params: dict[str, str | float] = {
         "latitude": latitude,
         "longitude": longitude,
@@ -100,8 +97,8 @@ def fetch_weather_for_city(city: City) -> WeatherRecord:
         response.raise_for_status()
     except requests.RequestException as exc:
         log_app_error(
-            "weather.fetch",
-            f"Failed to fetch weather for city {city.id}: {exc}",
+            "weather.fetch.open_meteo",
+            f"Failed to fetch Open-Meteo weather for city {city.id}: {exc}",
             exc,
         )
         raise WeatherFetchError(str(exc)) from exc
@@ -110,25 +107,25 @@ def fetch_weather_for_city(city: City) -> WeatherRecord:
     current = data.get("current")
     if not current:
         log_app_error(
-            "weather.fetch",
-            f"No current weather data in response for city {city.id}",
+            "weather.fetch.open_meteo",
+            f"No current weather data in Open-Meteo response for city {city.id}",
         )
-        raise WeatherFetchError("No current weather data in response")
+        raise WeatherFetchError("No current weather data in Open-Meteo response")
 
-    recorded_at = datetime.now(UTC).replace(tzinfo=None)
     observed_at_local = _parse_local_observation_time(current)
 
     if observed_at_local is not None:
-        existing = WeatherRecord.query.filter_by(
-            city_id=city.id,
-            observed_at_local=observed_at_local,
-        ).first()
+        existing = cast(
+            OmWeatherRecord | None,
+            OmWeatherRecord.query.filter_by(
+                city_id=city.id,
+                observed_at_local=observed_at_local,
+            ).first(),
+        )
         if existing is not None:
-            city.last_checked_at = recorded_at
-            db.session.commit()
             return existing
 
-    record = WeatherRecord(
+    record = OmWeatherRecord(
         city_id=city.id,
         recorded_at=recorded_at,
         observed_at_local=observed_at_local,
@@ -144,32 +141,178 @@ def fetch_weather_for_city(city: City) -> WeatherRecord:
         precipitation_mm=_optional_float(current.get("precipitation")),
         snow_depth_m=_optional_float(current.get("snow_depth")),
     )
-    city.last_checked_at = recorded_at
-    db.session.add(record)
     try:
-        db.session.commit()
+        with db.session.begin_nested():
+            db.session.add(record)
+            db.session.flush()
     except IntegrityError:
-        db.session.rollback()
         if observed_at_local is None:
             raise
-        existing = WeatherRecord.query.filter_by(
-            city_id=city.id,
-            observed_at_local=observed_at_local,
-        ).one()
-        city.last_checked_at = recorded_at
-        db.session.commit()
-        return existing
+        return cast(
+            OmWeatherRecord,
+            OmWeatherRecord.query.filter_by(
+                city_id=city.id,
+                observed_at_local=observed_at_local,
+            ).one(),
+        )
     return record
 
 
-def fetch_due_cities() -> list[WeatherRecord]:
-    from datetime import timedelta
+def _fetch_openweathermap_for_city(
+    city: City,
+    latitude: float,
+    longitude: float,
+    recorded_at: datetime,
+    api_key: str,
+) -> OwmWeatherRecord | None:
+    params: dict[str, str | float] = {
+        "lat": latitude,
+        "lon": longitude,
+        "appid": api_key,
+        "units": "metric",
+    }
+    try:
+        response = weather_api_get(OPENWEATHERMAP_URL, params=params, timeout=15)
+        response.raise_for_status()
+    except requests.RequestException as exc:
+        log_app_error(
+            "weather.fetch.openweathermap",
+            f"Failed to fetch OpenWeatherMap weather for city {city.id}: {exc}",
+            exc,
+        )
+        raise WeatherFetchError(str(exc)) from exc
 
-    from app.models import AppSettings
+    data: dict[str, Any] = response.json()
+    main = data.get("main")
+    if not main:
+        log_app_error(
+            "weather.fetch.openweathermap",
+            f"No weather data in OpenWeatherMap response for city {city.id}",
+        )
+        raise WeatherFetchError("No weather data in OpenWeatherMap response")
 
+    dt = data.get("dt")
+    if dt is None:
+        log_app_error(
+            "weather.fetch.openweathermap",
+            f"No observation time in OpenWeatherMap response for city {city.id}",
+        )
+        raise WeatherFetchError("No observation time in OpenWeatherMap response")
+
+    observed_at = datetime.fromtimestamp(int(dt), tz=UTC).replace(tzinfo=None)
+
+    existing = cast(
+        OwmWeatherRecord | None,
+        OwmWeatherRecord.query.filter_by(
+            city_id=city.id,
+            observed_at=observed_at,
+        ).first(),
+    )
+    if existing is not None:
+        return existing
+
+    weather_items = data.get("weather") or []
+    weather_item = weather_items[0] if weather_items else {}
+    wind = data.get("wind") or {}
+    clouds = data.get("clouds") or {}
+
+    record = OwmWeatherRecord(
+        city_id=city.id,
+        recorded_at=recorded_at,
+        observed_at=observed_at,
+        timezone_offset_sec=_optional_int(data.get("timezone")),
+        temperature_c=float(main["temp"]),
+        feels_like_c=_optional_float(main.get("feels_like")),
+        temp_min_c=_optional_float(main.get("temp_min")),
+        temp_max_c=_optional_float(main.get("temp_max")),
+        humidity_percent=_optional_float(main.get("humidity")),
+        pressure_mmhg=_pressure_hpa_to_mmhg(_optional_float(main.get("pressure"))),
+        wind_speed_ms=_optional_float(wind.get("speed")),
+        wind_deg=_optional_float(wind.get("deg")),
+        weather_id=_optional_int(weather_item.get("id")),
+        weather_main=_optional_str(weather_item.get("main")),
+        weather_description=_optional_str(weather_item.get("description")),
+        visibility_m=_optional_float(data.get("visibility")),
+        cloudiness_percent=_optional_float(clouds.get("all")),
+    )
+    try:
+        with db.session.begin_nested():
+            db.session.add(record)
+            db.session.flush()
+    except IntegrityError:
+        return cast(
+            OwmWeatherRecord,
+            OwmWeatherRecord.query.filter_by(
+                city_id=city.id,
+                observed_at=observed_at,
+            ).one(),
+        )
+    return record
+
+
+def fetch_weather_for_city(
+    city: City,
+) -> tuple[OmWeatherRecord | None, OwmWeatherRecord | None]:
+    settings = AppSettings.get_singleton()
+    if not settings.enable_open_meteo and not settings.enable_openweathermap:
+        raise WeatherFetchError("No weather data sources are enabled in settings.")
+
+    try:
+        latitude, longitude = ensure_city_coordinates(city)
+    except GeocodingError as exc:
+        log_app_error(
+            "weather.fetch",
+            f"Geocoding failed for city {city.id}: {exc}",
+            exc,
+        )
+        raise WeatherFetchError(str(exc)) from exc
+
+    recorded_at = datetime.now(UTC).replace(tzinfo=None)
+    open_meteo_record: OmWeatherRecord | None = None
+    owm_record: OwmWeatherRecord | None = None
+    errors: list[str] = []
+
+    if settings.enable_open_meteo:
+        try:
+            open_meteo_record = _fetch_open_meteo_for_city(
+                city,
+                latitude,
+                longitude,
+                recorded_at,
+            )
+        except WeatherFetchError as exc:
+            errors.append(f"Open-Meteo: {exc}")
+
+    if settings.enable_openweathermap:
+        api_key = (settings.openweathermap_api_key or "").strip()
+        if not api_key:
+            errors.append("OpenWeatherMap: API key is not configured.")
+        else:
+            try:
+                owm_record = _fetch_openweathermap_for_city(
+                    city,
+                    latitude,
+                    longitude,
+                    recorded_at,
+                    api_key,
+                )
+            except WeatherFetchError as exc:
+                errors.append(f"OpenWeatherMap: {exc}")
+
+    if open_meteo_record is None and owm_record is None:
+        if errors:
+            raise WeatherFetchError("; ".join(errors))
+        raise WeatherFetchError("No weather data was fetched.")
+
+    city.last_checked_at = recorded_at
+    db.session.commit()
+    return open_meteo_record, owm_record
+
+
+def fetch_due_cities() -> list[tuple[OmWeatherRecord | None, OwmWeatherRecord | None]]:
     default_interval = AppSettings.get_singleton().default_check_interval_minutes
     now = datetime.utcnow()
-    records: list[WeatherRecord] = []
+    results: list[tuple[OmWeatherRecord | None, OwmWeatherRecord | None]] = []
 
     for city in City.query.all():
         interval = (
@@ -182,10 +325,10 @@ def fetch_due_cities() -> list[WeatherRecord]:
         )
         if due:
             try:
-                records.append(fetch_weather_for_city(city))
+                results.append(fetch_weather_for_city(city))
             except WeatherFetchError:
                 db.session.rollback()
-    return records
+    return results
 
 
 def _optional_float(value: Any) -> float | None:
@@ -209,10 +352,10 @@ def _optional_str(value: Any) -> str | None:
 
 def clear_weather_records() -> tuple[str, str]:
     """Delete all weather records. Returns (flash category, message)."""
-    count = WeatherRecord.query.count()
+    count = OmWeatherRecord.query.count()
     if count == 0:
         return ("info", "No weather records to delete.")
 
-    WeatherRecord.query.delete()
+    OmWeatherRecord.query.delete()
     db.session.commit()
     return ("success", f"Deleted {count} weather record(s).")

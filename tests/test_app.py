@@ -7,7 +7,7 @@ from flask.testing import FlaskClient
 
 from app.extensions import db
 from app.memory_log import get_app_errors
-from app.models import City, User, WeatherRecord
+from app.models import City, User, OmWeatherRecord
 
 
 def test_login_page_accessible(client: FlaskClient) -> None:
@@ -191,7 +191,7 @@ def test_city_detail_with_records(auth_client: FlaskClient) -> None:
         city = City(name="Berlin", country="Germany")
         db.session.add(city)
         db.session.commit()
-        record = WeatherRecord(
+        record = OmWeatherRecord(
             city_id=city.id,
             recorded_at=datetime(2026, 1, 1, 12, 0),
             observed_at_local=datetime(2026, 1, 1, 13, 0),
@@ -221,9 +221,11 @@ def test_city_detail_with_records(auth_client: FlaskClient) -> None:
     assert b"Berlin" in response.data
     assert b"10.0" in response.data
     assert b"Mainly clear" in response.data
-    assert b"pressureChart" in response.data
-    assert b"temperatureChart" in response.data
-    assert b"snowChart" in response.data
+    assert b"OpenWeatherMap" in response.data
+    assert b"Open-Meteo" in response.data
+    assert b"om-temperatureChart" in response.data
+    assert b"om-pressureChart" in response.data
+    assert b"om-snowChart" in response.data
 
 
 def test_fetch_weather_tools_by_coordinates(
@@ -242,7 +244,7 @@ def test_fetch_weather_tools_by_coordinates(
     response = auth_client.post("/admin/tools/fetch-weather/", follow_redirects=True)
     assert b"Fetched weather for 1 cities" in response.data
     with auth_client.application.app_context():
-        records = WeatherRecord.query.filter_by(city_id=city_id).all()
+        records = OmWeatherRecord.query.filter_by(city_id=city_id).all()
         assert len(records) == 1
         record = records[0]
         assert record.temperature_c == 15.5
@@ -267,7 +269,7 @@ def test_fetch_weather_tools_by_name_country(
     response = auth_client.post("/admin/tools/fetch-weather/", follow_redirects=True)
     assert b"Fetched weather for 1 cities" in response.data
     with auth_client.application.app_context():
-        records = WeatherRecord.query.filter_by(city_id=city_id).all()
+        records = OmWeatherRecord.query.filter_by(city_id=city_id).all()
         assert len(records) == 1
 
 
@@ -288,7 +290,7 @@ def test_fetch_weather_skips_duplicate_observed_at(
     auth_client.post("/admin/tools/fetch-weather/", follow_redirects=True)
 
     with auth_client.application.app_context():
-        records = WeatherRecord.query.filter_by(city_id=city_id).all()
+        records = OmWeatherRecord.query.filter_by(city_id=city_id).all()
         assert len(records) == 1
         assert records[0].observed_at_local == datetime(2026, 6, 27, 14, 30)
 
@@ -299,7 +301,7 @@ def test_weather_map_page(auth_client: FlaskClient, mock_geocoding: None) -> Non
         db.session.add(city)
         db.session.commit()
         db.session.add(
-            WeatherRecord(
+            OmWeatherRecord(
                 city_id=city.id,
                 recorded_at=datetime(2026, 6, 27, 12, 0),
                 observed_at_local=datetime(2026, 6, 27, 14, 0),
@@ -387,19 +389,19 @@ def test_clear_weather_tools(auth_client: FlaskClient) -> None:
         db.session.add(city)
         db.session.commit()
         db.session.add(
-            WeatherRecord(
+            OmWeatherRecord(
                 city_id=city.id,
                 recorded_at=datetime(2026, 1, 1, 12, 0),
                 temperature_c=10.0,
             )
         )
         db.session.commit()
-        assert WeatherRecord.query.count() == 1
+        assert OmWeatherRecord.query.count() == 1
 
     response = auth_client.post("/admin/tools/clear-weather/", follow_redirects=True)
     assert b"Deleted 1 weather record(s)." in response.data
     with auth_client.application.app_context():
-        assert WeatherRecord.query.count() == 0
+        assert OmWeatherRecord.query.count() == 0
         assert City.query.count() == 1
 
 

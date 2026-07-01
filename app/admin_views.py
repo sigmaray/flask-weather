@@ -13,16 +13,15 @@ from wtforms import PasswordField, validators
 
 from app.admin_auth import SecureBaseView, SecureModelView
 from app.extensions import db
-from app.models import AppSettings, City
+from app.models import AppSettings, City, OwmWeatherRecord
 from app.services.geocoding import GeocodingError
 from app.services.weather import ensure_city_coordinates
 from app.services.weather_codes import weather_code_label
 
 
-def _city_weather_context(city: City) -> dict[str, Any]:
-    records = list(city.weather_records)[:100]
+def _build_open_meteo_chart_data(records: list[Any]) -> dict[str, Any]:
     chronological = list(reversed(records))
-    chart_data = {
+    return {
         "labels": [r.display_time.strftime("%Y-%m-%d %H:%M") for r in chronological],
         "temperatures": [r.temperature_c for r in chronological],
         "humidity": [r.humidity_percent for r in chronological],
@@ -30,10 +29,29 @@ def _city_weather_context(city: City) -> dict[str, Any]:
         "snow_depth": [r.snow_depth_m for r in chronological],
         "pressure": [r.pressure_mmhg for r in chronological],
     }
+
+
+def _build_openweathermap_chart_data(records: list[Any]) -> dict[str, Any]:
+    chronological = list(reversed(records))
+    return {
+        "labels": [r.display_time.strftime("%Y-%m-%d %H:%M") for r in chronological],
+        "temperatures": [r.temperature_c for r in chronological],
+        "humidity": [r.humidity_percent for r in chronological],
+        "wind": [r.wind_speed_ms for r in chronological],
+        "pressure": [r.pressure_mmhg for r in chronological],
+        "cloudiness": [r.cloudiness_percent for r in chronological],
+    }
+
+
+def _city_weather_context(city: City) -> dict[str, Any]:
+    om_records = list(city.weather_records)[:100]
+    owm_records = list(city.owm_weather_records)[:100]
     return {
         "city": city,
-        "records": records,
-        "chart_data_json": json.dumps(chart_data),
+        "om_records": om_records,
+        "owm_records": owm_records,
+        "om_chart_data_json": json.dumps(_build_open_meteo_chart_data(om_records)),
+        "owm_chart_data_json": json.dumps(_build_openweathermap_chart_data(owm_records)),
         "default_interval": AppSettings.get_singleton().default_check_interval_minutes,
     }
 
@@ -261,7 +279,7 @@ def _weather_record_city_link(_view: Any, _context: Any, model: Any, _name: str)
     return Markup(f'<a href="{city_url}">{escape(model.city.display_name)}</a>')
 
 
-class WeatherRecordAdmin(SecureModelView):
+class OmWeatherRecordAdmin(SecureModelView):
     column_list = [
         "id",
         "city_id",
@@ -312,26 +330,122 @@ class WeatherRecordAdmin(SecureModelView):
     page_size = 25
 
 
+class OwmWeatherRecordAdmin(SecureModelView):
+    column_list = [
+        "id",
+        "city_id",
+        "recorded_at",
+        "observed_at",
+        "temperature_c",
+        "feels_like_c",
+        "humidity_percent",
+        "pressure_mmhg",
+        "wind_speed_ms",
+        "wind_deg",
+        "weather_id",
+        "weather_main",
+        "weather_description",
+        "visibility_m",
+        "cloudiness_percent",
+    ]
+    column_filters = ["city_id", "recorded_at"]
+    column_sortable_list = ["id", "recorded_at", "temperature_c"]
+    column_default_sort = ("recorded_at", True)
+
+    column_formatters = {
+        "city_id": _weather_record_city_link,
+    }
+    column_formatters_detail = {
+        "city_id": _weather_record_city_link,
+    }
+
+    column_labels = {
+        "id": "ID",
+        "city_id": "City",
+        "recorded_at": "Recorded at (UTC)",
+        "observed_at": "Observed at (UTC)",
+        "temperature_c": "Temperature (°C)",
+        "feels_like_c": "Feels like (°C)",
+        "temp_min_c": "Temp min (°C)",
+        "temp_max_c": "Temp max (°C)",
+        "humidity_percent": "Humidity (%)",
+        "pressure_mmhg": "Pressure (mmHg)",
+        "wind_speed_ms": "Wind speed (m/s)",
+        "wind_deg": "Wind direction (°)",
+        "weather_id": "Weather ID",
+        "weather_main": "Weather",
+        "weather_description": "Description",
+        "visibility_m": "Visibility (m)",
+        "cloudiness_percent": "Cloudiness (%)",
+    }
+
+    can_create = False
+    can_edit = False
+    can_view_details = True
+    page_size = 25
+
+
 class AppSettingsAdmin(SecureModelView):
-    column_list = ["id", "default_check_interval_minutes", "updated_at"]
-    column_sortable_list = ["id", "default_check_interval_minutes", "updated_at"]
+    column_list = [
+        "id",
+        "default_check_interval_minutes",
+        "enable_open_meteo",
+        "enable_openweathermap",
+        "updated_at",
+    ]
+    column_sortable_list = [
+        "id",
+        "default_check_interval_minutes",
+        "enable_open_meteo",
+        "enable_openweathermap",
+        "updated_at",
+    ]
     column_default_sort = ("id", False)
 
     column_labels = {
         "id": "ID",
         "default_check_interval_minutes": "Default check interval (min)",
+        "openweathermap_api_key": "OpenWeatherMap API key",
+        "enable_open_meteo": "Open-Meteo enabled",
+        "enable_openweathermap": "OpenWeatherMap enabled",
         "updated_at": "Updated",
     }
 
-    form_columns = ["default_check_interval_minutes"]
+    form_columns = [
+        "default_check_interval_minutes",
+        "enable_open_meteo",
+        "enable_openweathermap",
+        "openweathermap_api_key",
+    ]
     form_args = {
         "default_check_interval_minutes": {"label": "Default check interval (minutes)"},
+        "openweathermap_api_key": {"label": "OpenWeatherMap API key"},
+        "enable_open_meteo": {"label": "Enable Open-Meteo"},
+        "enable_openweathermap": {"label": "Enable OpenWeatherMap"},
     }
 
     can_create = False
     can_delete = False
     can_view_details = True
     page_size = 25
+
+    def validate_form(self, form: Any) -> bool:
+        if not super().validate_form(form):
+            return False
+
+        enable_open_meteo = bool(form.enable_open_meteo.data)
+        enable_openweathermap = bool(form.enable_openweathermap.data)
+        api_key = (form.openweathermap_api_key.data or "").strip()
+
+        if not enable_open_meteo and not enable_openweathermap:
+            flash("Enable at least one weather data source.", "error")
+            return False
+
+        if enable_openweathermap and not api_key:
+            flash("OpenWeatherMap API key is required when OpenWeatherMap is enabled.", "error")
+            return False
+
+        return True
 
     def get_query(self) -> Any:
         AppSettings.get_singleton()
@@ -341,12 +455,12 @@ class AppSettingsAdmin(SecureModelView):
 class ToolsAdmin(SecureBaseView):
     @expose("/")
     def index(self) -> Any:
-        from app.models import City, User, WeatherRecord
+        from app.models import City, OmWeatherRecord, User
 
         return self.render(
             "admin/tools.html",
             cities_count=City.query.count(),
-            weather_records_count=WeatherRecord.query.count(),
+            weather_records_count=OmWeatherRecord.query.count(),
             users_count=User.query.count(),
         )
 

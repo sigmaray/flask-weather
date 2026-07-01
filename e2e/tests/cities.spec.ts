@@ -49,15 +49,21 @@ test.describe("Cities", () => {
   test("opens city details with weather history and charts", async ({ page }) => {
     await openCityDetails(page, "Berlin");
 
-    if (!(await page.getByRole("heading", { name: "History" }).isVisible())) {
+    await expect(page.getByRole("link", { name: "OpenWeatherMap", exact: true })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Open-Meteo", exact: true })).toBeVisible();
+
+    await page.getByRole("link", { name: "Open-Meteo", exact: true }).click();
+
+    if (!(await page.locator("#omPanel").getByRole("heading", { name: "History" }).isVisible())) {
       await page.getByRole("button", { name: "Fetch now" }).click();
       await expectFlash(page, "Weather data fetched.", 30_000);
+      await page.getByRole("link", { name: "Open-Meteo", exact: true }).click();
     }
 
     await expect(page.getByRole("button", { name: "Fetch now" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "History" })).toBeVisible();
-    await expect(page.locator("#temperatureChart")).toBeVisible();
-    await expect(page.locator("#pressureChart")).toBeVisible();
+    await expect(page.locator("#omPanel").getByRole("heading", { name: "History" })).toBeVisible();
+    await expect(page.locator("#om-temperatureChart")).toBeVisible();
+    await expect(page.locator("#om-pressureChart")).toBeVisible();
     await expect(page.getByRole("link", { name: "Back to cities" })).toBeVisible();
   });
 
@@ -88,14 +94,16 @@ test.describe("Cities", () => {
 
   test("fetch now on city detail stores a weather record", async ({ page }) => {
     await openCityDetails(page, "Berlin");
+    await page.getByRole("link", { name: "Open-Meteo", exact: true }).click();
 
-    const historyRows = page.locator(".weather-history-table tbody tr");
+    const historyRows = page.locator("#omPanel .weather-history-table tbody tr");
     const recordsBefore = await historyRows.count();
 
     await page.getByRole("button", { name: "Fetch now" }).click();
     await expectFlash(page, "Weather data fetched.", 30_000);
 
+    await page.getByRole("link", { name: "Open-Meteo", exact: true }).click();
     await expect(historyRows).toHaveCount(recordsBefore + 1);
-    await expect(page.locator("#temperatureChart")).toBeVisible();
+    await expect(page.locator("#om-temperatureChart")).toBeVisible();
   });
 });

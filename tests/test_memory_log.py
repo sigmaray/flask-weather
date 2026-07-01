@@ -116,7 +116,7 @@ def test_weather_api_request_logged_on_failure(
 
     errors = get_app_errors()
     assert len(errors) == 1
-    assert errors[0].source == "weather.fetch"
+    assert errors[0].source == "weather.fetch.open_meteo"
 
 
 def test_format_http_body_json() -> None:

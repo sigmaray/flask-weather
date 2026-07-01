@@ -247,7 +247,7 @@ app/
   blueprints/auth.py         # Login / logout
   cli.py                     # Flask CLI commands
   factory.py                 # Application factory
-  models.py                  # User, City, WeatherRecord, AppSettings
+  models.py                  # User, City, OmWeatherRecord, AppSettings
   scheduler.py               # APScheduler background jobs
   services/                  # Weather fetch, geocoding, seed helpers
   templates/                 # Jinja2 templates (admin UI)

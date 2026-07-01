@@ -8,15 +8,16 @@ from app.admin_views import (
     AppErrorLogAdmin,
     AppSettingsAdmin,
     CityAdmin,
+    OwmWeatherRecordAdmin,
     SchedulerAdmin,
     ToolsAdmin,
     UserAdmin,
     WeatherApiLogAdmin,
     WeatherMapAdmin,
-    WeatherRecordAdmin,
+    OmWeatherRecordAdmin,
 )
 from app.extensions import db
-from app.models import AppSettings, City, User, WeatherRecord
+from app.models import AppSettings, City, OmWeatherRecord, OwmWeatherRecord, User
 
 
 def init_admin(app: Flask) -> None:
@@ -30,11 +31,19 @@ def init_admin(app: Flask) -> None:
     admin.add_view(UserAdmin(User, db.session, name="Users", endpoint="users"))
     admin.add_view(CityAdmin(City, db.session, name="Cities", endpoint="admin_cities"))
     admin.add_view(
-        WeatherRecordAdmin(
-            WeatherRecord,
+        OmWeatherRecordAdmin(
+            OmWeatherRecord,
             db.session,
-            name="Weather",
+            name="Weather (Open-Meteo)",
             endpoint="weather_records",
+        )
+    )
+    admin.add_view(
+        OwmWeatherRecordAdmin(
+            OwmWeatherRecord,
+            db.session,
+            name="Weather (OpenWeatherMap)",
+            endpoint="owm_weather_records",
         )
     )
     admin.add_view(

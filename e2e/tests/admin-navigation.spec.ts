@@ -20,7 +20,7 @@ test.describe("Admin navigation", () => {
     await expect(page).toHaveURL(/\/admin\/admin_cities/);
     await expect(page.getByRole("columnheader", { name: "Name", exact: true })).toBeVisible();
 
-    await page.getByRole("link", { name: "Weather", exact: true }).click();
+    await page.getByRole("link", { name: "Weather (Open-Meteo)", exact: true }).click();
     await expect(page).toHaveURL(/\/admin\/weather_records/);
     await expect(page.getByRole("columnheader", { name: /Temperature/ })).toBeVisible();
 
