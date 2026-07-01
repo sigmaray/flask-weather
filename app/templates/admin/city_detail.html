@@ -85,7 +85,7 @@
                     </td>
                     <td>{{ record.observed_at_local.strftime('%Y-%m-%d %H:%M') if record.observed_at_local else '—' }}</td>
                     <td>{{ record.weather_description or record.weather_main or '—' }}</td>
-                    <td>{{ "%.1f"|format(record.temperature_c) }}</td>
+                    <td>{{ "%.2f"|format(record.temperature_c) }}</td>
                     <td>{{ "%.0f"|format(record.humidity_percent) if record.humidity_percent is not none else '—' }}</td>
                     <td>{{ "%.0f"|format(record.pressure_mmhg) if record.pressure_mmhg is not none else '—' }}</td>
                     <td>{{ "%.1f"|format(record.wind_speed_ms) if record.wind_speed_ms is not none else '—' }}</td>
@@ -144,7 +144,7 @@
                         {% endif %}
                     </td>
                     <td>{{ record.weather_code | weather_code_label }}</td>
-                    <td>{{ "%.1f"|format(record.temperature_c) }}</td>
+                    <td>{{ "%.2f"|format(record.temperature_c) }}</td>
                     <td>{{ "%.0f"|format(record.humidity_percent) if record.humidity_percent is not none else '—' }}</td>
                     <td>{{ "%.0f"|format(record.pressure_mmhg) if record.pressure_mmhg is not none else '—' }}</td>
                     <td>{{ "%.1f"|format(record.wind_speed_ms) if record.wind_speed_ms is not none else '—' }}</td>
