@@ -347,20 +347,28 @@ clone_project() {
   git -C "${DEPLOY_DIR}" checkout --detach "${target_sha}"
 }
 
+RSYNC_OPTS=(-a --delete --exclude '.env')
+
+count_rsync_changes() {
+  local source_dir="$1"
+  rsync "${RSYNC_OPTS[@]}" --dry-run --itemize-changes "${source_dir}/" "${DEPLOY_DIR}/" \
+    | grep -vE '^(\.d\.\.t|>f\.\.t)' \
+    | grep -c . || true
+}
+
 deploy_from_source() {
   [[ -d "${SETUP_SOURCE_DIR}" ]] || die "SETUP_SOURCE_DIR does not exist: ${SETUP_SOURCE_DIR}"
   mkdir -p "${DEPLOY_DIR}"
 
-  local rsync_opts=(-a --delete --exclude '.env')
   local changes
-  changes="$(rsync "${rsync_opts[@]}" --dry-run --itemize-changes "${SETUP_SOURCE_DIR}/" "${DEPLOY_DIR}/" | wc -l)"
+  changes="$(count_rsync_changes "${SETUP_SOURCE_DIR}")"
   if [[ "${changes}" -eq 0 ]]; then
     log "Source tree already synced to ${DEPLOY_DIR}"
     printf 'current'
     return 0
   fi
 
-  rsync "${rsync_opts[@]}" "${SETUP_SOURCE_DIR}/" "${DEPLOY_DIR}/"
+  rsync "${RSYNC_OPTS[@]}" "${SETUP_SOURCE_DIR}/" "${DEPLOY_DIR}/"
   printf 'sync'
 }
 

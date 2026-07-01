@@ -267,7 +267,7 @@ RSYNC_OPTS=(-a --delete --exclude '.env' --exclude '.repo-cache')
 count_rsync_changes() {
   local source_dir="$1"
   rsync "${RSYNC_OPTS[@]}" --dry-run --itemize-changes "${source_dir}/" "${DEPLOY_DIR}/" \
-    | grep -vE '^\.d\.\.t' \
+    | grep -vE '^(\.d\.\.t|>f\.\.t)' \
     | grep -c . || true
 }
 
