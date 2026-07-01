@@ -12,7 +12,7 @@
                     <code>worker</code> process (Docker Compose default), use
                     <strong>Tools → Fetch due cities</strong> or <code>flask fetch-weather</code>
                     for manual runs. Pause/resume controls on this page apply only to the
-                    in-process APScheduler (<code>SCHEDULER_ENABLED=true</code>).
+                    in-process APScheduler (<code>INTERNAL_SCHEDULER_ENABLED=true</code>).
                 </div>
                 {% else %}
                 <div class="table-responsive">
@@ -106,9 +106,9 @@
                         </p>
                         <p class="text-muted">
                             To use the in-process scheduler (for example during local development),
-                            set <code>SCHEDULER_ENABLED=true</code> and restart the server.
+                            set <code>INTERNAL_SCHEDULER_ENABLED=true</code> and restart the server.
                             For production-style deployments, keep
-                            <code>SCHEDULER_ENABLED=false</code> on web and run
+                            <code>INTERNAL_SCHEDULER_ENABLED=false</code> on web and run
                             <code>flask run-worker</code> in a dedicated process or container.
                         </p>
                         {% else %}
@@ -118,7 +118,7 @@
                             registered with APScheduler in this process. Changes take effect immediately
                             but are <strong>not persisted</strong> — restarting the application recreates
                             the default <code>fetch_weather</code> job unless
-                            <code>SCHEDULER_ENABLED=false</code>.
+                            <code>INTERNAL_SCHEDULER_ENABLED=false</code>.
                         </p>
                         {% endif %}
 

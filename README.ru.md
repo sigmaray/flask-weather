@@ -47,7 +47,7 @@
 docker compose up --build
 ```
 
-Стек поднимает два процесса приложения: **web** (HTTP и админка) и **worker** (периодический сбор погоды через `flask run-worker`). На web отключён встроенный планировщик (`SCHEDULER_ENABLED=false`), поэтому Gunicorn может использовать несколько workers без дублирования запросов.
+Стек поднимает два процесса приложения: **web** (HTTP и админка) и **worker** (периодический сбор погоды через `flask run-worker`). На web отключён встроенный планировщик (`INTERNAL_SCHEDULER_ENABLED=false`), поэтому Gunicorn может использовать несколько workers без дублирования запросов.
 
 При первом запуске контейнер автоматически применяет миграции. Затем создайте пользователя (в другом терминале, пока стек работает):
 
@@ -100,7 +100,7 @@ cp .env.example .env
 |------------|----------------------|----------|
 | `DATABASE_URL` | `postgresql://postgres:postgres@localhost:5432/weather` | Строка подключения к PostgreSQL |
 | `SECRET_KEY` | `dev-secret-key` | Ключ подписи сессий Flask — **обязательно смените в production** |
-| `SCHEDULER_ENABLED` | `true` | Встроенный APScheduler для локальной разработки. В Docker на web стоит `false`, сбор погоды выполняет сервис `worker` |
+| `INTERNAL_SCHEDULER_ENABLED` | `false` | Установите `true`, чтобы запускать APScheduler внутри web-процесса (локальная разработка). В Docker остаётся `false`, сбор погоды выполняет сервис `worker` |
 | `FLASK_DEBUG` | — | Установите `1` для режима отладки Flask (только локально) |
 | `FLASK_APP` | `wsgi:app` | Обязательна для команд Flask CLI |
 
@@ -129,14 +129,14 @@ gunicorn --bind 0.0.0.0:5000 --workers 1 wsgi:app
 Чтобы повторить Docker-разделение локально, запустите worker во втором терминале:
 
 ```bash
-export SCHEDULER_ENABLED=false
+export INTERNAL_SCHEDULER_ENABLED=false
 gunicorn --bind 0.0.0.0:5000 --workers 2 wsgi:app
 
 # терминал 2
 flask run-worker
 ```
 
-> **Фоновый сбор погоды.** Docker Compose выполняет опрос погоды в отдельном контейнере **worker** (`flask run-worker`). Для локальной разработки можно оставить встроенный APScheduler (`SCHEDULER_ENABLED=true`, по умолчанию) или отключить его на web и запустить `flask run-worker` в другом терминале — как в production.
+> **Фоновый сбор погоды.** Docker Compose выполняет опрос погоды в отдельном контейнере **worker** (`flask run-worker`). Для локальной разработки запустите `flask run-worker` во втором терминале (как в production) или установите `INTERNAL_SCHEDULER_ENABLED=true`, чтобы использовать встроенный APScheduler в web-процессе.
 
 ## Панель администратора
 
@@ -166,7 +166,7 @@ flask run-worker
 ### Сбор погоды
 
 - **Docker / production:** сервис `worker` запускает `flask run-worker` каждые 60 секунд и вызывает `fetch_due_cities()`.
-- **Локальная разработка (по умолчанию):** встроенный APScheduler просыпается каждую **1 минуту** при `SCHEDULER_ENABLED=true`.
+- **Локальная разработка:** запустите `flask run-worker` во втором терминале или установите `INTERNAL_SCHEDULER_ENABLED=true` для встроенного планировщика с интервалом **1 минута**.
 - Город считается «просроченным», если `last_checked_at` старше его эффективного интервала.
 - **Fetch now** на странице города запрашивает погоду немедленно, вне расписания.
 - **Tools → Fetch weather** запрашивает погоду для всех просроченных городов сразу.

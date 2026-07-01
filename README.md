@@ -47,7 +47,7 @@ The fastest way to run everything — database, web app, and background worker:
 docker compose up --build
 ```
 
-The stack runs two application processes: **web** (HTTP + admin UI) and **worker** (periodic weather fetching via `flask run-worker`). The web service disables the in-process scheduler (`SCHEDULER_ENABLED=false`) so Gunicorn can use multiple workers without duplicating fetches.
+The stack runs two application processes: **web** (HTTP + admin UI) and **worker** (periodic weather fetching via `flask run-worker`). The web service disables the in-process scheduler (`INTERNAL_SCHEDULER_ENABLED=false`) so Gunicorn can use multiple workers without duplicating fetches.
 
 On first start the web container runs migrations automatically. Then create a user (in another terminal, with the stack running):
 
@@ -100,7 +100,7 @@ cp .env.example .env
 |----------|---------|-------------|
 | `DATABASE_URL` | `postgresql://postgres:postgres@localhost:5432/weather` | PostgreSQL connection string |
 | `SECRET_KEY` | `dev-secret-key` | Flask session signing key — **change in production** |
-| `SCHEDULER_ENABLED` | `true` | In-process APScheduler for local dev. Docker sets `false` on web and uses the `worker` service instead |
+| `INTERNAL_SCHEDULER_ENABLED` | `false` | Set to `true` to run APScheduler inside the web process (local dev). Docker leaves it `false` and uses the `worker` service |
 | `FLASK_DEBUG` | — | Set to `1` for Flask debug mode (local dev only) |
 | `FLASK_APP` | `wsgi:app` | Required for Flask CLI commands |
 
@@ -129,14 +129,14 @@ gunicorn --bind 0.0.0.0:5000 --workers 1 wsgi:app
 To mirror the Docker split locally, run the worker in a second terminal:
 
 ```bash
-export SCHEDULER_ENABLED=false
+export INTERNAL_SCHEDULER_ENABLED=false
 gunicorn --bind 0.0.0.0:5000 --workers 2 wsgi:app
 
 # terminal 2
 flask run-worker
 ```
 
-> **Background fetching.** Docker Compose runs weather polling in a separate **worker** container (`flask run-worker`). For local development you can keep the in-process APScheduler (`SCHEDULER_ENABLED=true`, default) or disable it on web and run `flask run-worker` in another terminal — the same split as production.
+> **Background fetching.** Docker Compose runs weather polling in a separate **worker** container (`flask run-worker`). For local development, run `flask run-worker` in a second terminal (same as production), or set `INTERNAL_SCHEDULER_ENABLED=true` to use the in-process APScheduler in the web process.
 
 ## Admin panel
 
@@ -166,7 +166,7 @@ Do not mix both in one record. An empty per-city interval uses the global defaul
 ### Weather fetching
 
 - **Docker / production:** the `worker` service runs `flask run-worker` every 60 seconds and calls `fetch_due_cities()`.
-- **Local dev (default):** in-process APScheduler wakes every **1 minute** when `SCHEDULER_ENABLED=true`.
+- **Local dev:** run `flask run-worker` in a second terminal, or set `INTERNAL_SCHEDULER_ENABLED=true` for an in-process scheduler that wakes every **1 minute**.
 - A city is due when `last_checked_at` is older than its effective interval.
 - **Fetch now** on a city detail page fetches immediately, regardless of schedule.
 - **Tools → Fetch weather** fetches all due cities at once.

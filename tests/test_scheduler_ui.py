@@ -15,7 +15,7 @@ def scheduler_app() -> Flask:
             "TESTING": True,
             "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
             "WTF_CSRF_ENABLED": False,
-            "SCHEDULER_ENABLED": True,
+            "INTERNAL_SCHEDULER_ENABLED": True,
             "SECRET_KEY": "test-secret",
         }
     )

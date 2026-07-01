@@ -28,7 +28,7 @@ def app() -> Generator[Flask, None, None]:
             "TESTING": True,
             "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
             "WTF_CSRF_ENABLED": False,
-            "SCHEDULER_ENABLED": False,
+            "INTERNAL_SCHEDULER_ENABLED": False,
             "SECRET_KEY": "test-secret",
         }
     )

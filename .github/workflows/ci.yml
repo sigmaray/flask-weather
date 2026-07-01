@@ -82,7 +82,7 @@ jobs:
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/weather_e2e
           SECRET_KEY: e2e-secret
-          SCHEDULER_ENABLED: "true"
+          INTERNAL_SCHEDULER_ENABLED: "true"
           USE_VCR: "true"
         run: |
           flask db upgrade

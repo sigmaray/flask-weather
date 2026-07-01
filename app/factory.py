@@ -22,7 +22,10 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
             "DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/weather"
         ),
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
-        SCHEDULER_ENABLED=os.environ.get("SCHEDULER_ENABLED", "true").lower() == "true",
+        INTERNAL_SCHEDULER_ENABLED=os.environ.get(
+            "INTERNAL_SCHEDULER_ENABLED", "false"
+        ).lower()
+        == "true",
     )
     if config:
         app.config.update(config)
@@ -75,7 +78,7 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
         log_app_error("unhandled", str(exc), exc)
         raise
 
-    if app.config["SCHEDULER_ENABLED"]:
+    if app.config["INTERNAL_SCHEDULER_ENABLED"]:
         init_scheduler(app)
 
     return app

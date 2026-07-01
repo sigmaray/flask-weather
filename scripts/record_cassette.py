@@ -17,7 +17,7 @@ def main():
         {
             "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
             "TESTING": True,
-            "SCHEDULER_ENABLED": False,
+            "INTERNAL_SCHEDULER_ENABLED": False,
         }
     )
 
