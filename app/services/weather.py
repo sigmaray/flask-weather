@@ -86,7 +86,8 @@ def _fetch_open_meteo_for_city(
         "longitude": longitude,
         "current": (
             "temperature_2m,relative_humidity_2m,dew_point_2m,pressure_msl,"
-            "apparent_temperature,wind_speed_10m,weather_code,precipitation,snow_depth"
+            "apparent_temperature,wind_speed_10m,weather_code,precipitation,snow_depth,"
+            "cloud_cover"
         ),
         "daily": "uv_index_max",
         "timezone": "auto",
@@ -140,6 +141,7 @@ def _fetch_open_meteo_for_city(
         uv_index=_daily_uv_index(data),
         precipitation_mm=_optional_float(current.get("precipitation")),
         snow_depth_m=_optional_float(current.get("snow_depth")),
+        cloudiness_percent=_optional_float(current.get("cloud_cover")),
     )
     try:
         with db.session.begin_nested():
@@ -158,6 +160,66 @@ def _fetch_open_meteo_for_city(
     return record
 
 
+def _optional_hourly_volume_mm(section: Any) -> float | None:
+    if not isinstance(section, dict):
+        return None
+    return _optional_float(section.get("1h")) or _optional_float(section.get("3h"))
+
+
+def _parse_owm_weather(data: dict[str, Any]) -> dict[str, Any]:
+    main = data.get("main")
+    if not main:
+        raise WeatherFetchError("No weather data in OpenWeatherMap response")
+
+    dt = data.get("dt")
+    if dt is None:
+        raise WeatherFetchError("No observation time in OpenWeatherMap response")
+
+    weather_items = data.get("weather") or []
+    weather_item = weather_items[0] if weather_items else {}
+    wind = data.get("wind") or {}
+    clouds = data.get("clouds") or {}
+
+    temperature_c = float(main["temp"])
+    humidity_percent = _optional_float(main.get("humidity"))
+
+    return {
+        "observed_at": datetime.fromtimestamp(int(dt), tz=UTC).replace(tzinfo=None),
+        "timezone_offset_sec": _optional_int(data.get("timezone")),
+        "temperature_c": temperature_c,
+        "feels_like_c": _optional_float(main.get("feels_like")),
+        "temp_min_c": _optional_float(main.get("temp_min")),
+        "temp_max_c": _optional_float(main.get("temp_max")),
+        "humidity_percent": humidity_percent,
+        "pressure_mmhg": _pressure_hpa_to_mmhg(_optional_float(main.get("pressure"))),
+        "wind_speed_ms": _optional_float(wind.get("speed")),
+        "wind_deg": _optional_float(wind.get("deg")),
+        "weather_id": _optional_int(weather_item.get("id")),
+        "weather_main": _optional_str(weather_item.get("main")),
+        "weather_description": _optional_str(weather_item.get("description")),
+        "visibility_m": _optional_float(data.get("visibility")),
+        "cloudiness_percent": _optional_float(clouds.get("all")),
+        "precipitation_mm": _optional_hourly_volume_mm(data.get("rain")),
+        "snow_1h_mm": _optional_hourly_volume_mm(data.get("snow")),
+    }
+
+
+def _request_openweathermap_data(
+    latitude: float,
+    longitude: float,
+    api_key: str,
+) -> dict[str, Any]:
+    params: dict[str, str | float] = {
+        "lat": latitude,
+        "lon": longitude,
+        "appid": api_key,
+        "units": "metric",
+    }
+    response = weather_api_get(OPENWEATHERMAP_URL, params=params, timeout=15)
+    response.raise_for_status()
+    return _parse_owm_weather(response.json())
+
+
 def _fetch_openweathermap_for_city(
     city: City,
     latitude: float,
@@ -165,15 +227,8 @@ def _fetch_openweathermap_for_city(
     recorded_at: datetime,
     api_key: str,
 ) -> OwmWeatherRecord | None:
-    params: dict[str, str | float] = {
-        "lat": latitude,
-        "lon": longitude,
-        "appid": api_key,
-        "units": "metric",
-    }
     try:
-        response = weather_api_get(OPENWEATHERMAP_URL, params=params, timeout=15)
-        response.raise_for_status()
+        parsed = _request_openweathermap_data(latitude, longitude, api_key)
     except requests.RequestException as exc:
         log_app_error(
             "weather.fetch.openweathermap",
@@ -182,24 +237,8 @@ def _fetch_openweathermap_for_city(
         )
         raise WeatherFetchError(str(exc)) from exc
 
-    data: dict[str, Any] = response.json()
-    main = data.get("main")
-    if not main:
-        log_app_error(
-            "weather.fetch.openweathermap",
-            f"No weather data in OpenWeatherMap response for city {city.id}",
-        )
-        raise WeatherFetchError("No weather data in OpenWeatherMap response")
-
-    dt = data.get("dt")
-    if dt is None:
-        log_app_error(
-            "weather.fetch.openweathermap",
-            f"No observation time in OpenWeatherMap response for city {city.id}",
-        )
-        raise WeatherFetchError("No observation time in OpenWeatherMap response")
-
-    observed_at = datetime.fromtimestamp(int(dt), tz=UTC).replace(tzinfo=None)
+    observed_at = parsed["observed_at"]
+    assert isinstance(observed_at, datetime)
 
     existing = cast(
         OwmWeatherRecord | None,
@@ -211,29 +250,26 @@ def _fetch_openweathermap_for_city(
     if existing is not None:
         return existing
 
-    weather_items = data.get("weather") or []
-    weather_item = weather_items[0] if weather_items else {}
-    wind = data.get("wind") or {}
-    clouds = data.get("clouds") or {}
-
     record = OwmWeatherRecord(
         city_id=city.id,
         recorded_at=recorded_at,
         observed_at=observed_at,
-        timezone_offset_sec=_optional_int(data.get("timezone")),
-        temperature_c=float(main["temp"]),
-        feels_like_c=_optional_float(main.get("feels_like")),
-        temp_min_c=_optional_float(main.get("temp_min")),
-        temp_max_c=_optional_float(main.get("temp_max")),
-        humidity_percent=_optional_float(main.get("humidity")),
-        pressure_mmhg=_pressure_hpa_to_mmhg(_optional_float(main.get("pressure"))),
-        wind_speed_ms=_optional_float(wind.get("speed")),
-        wind_deg=_optional_float(wind.get("deg")),
-        weather_id=_optional_int(weather_item.get("id")),
-        weather_main=_optional_str(weather_item.get("main")),
-        weather_description=_optional_str(weather_item.get("description")),
-        visibility_m=_optional_float(data.get("visibility")),
-        cloudiness_percent=_optional_float(clouds.get("all")),
+        timezone_offset_sec=cast(int | None, parsed["timezone_offset_sec"]),
+        temperature_c=cast(float, parsed["temperature_c"]),
+        feels_like_c=cast(float | None, parsed["feels_like_c"]),
+        temp_min_c=cast(float | None, parsed["temp_min_c"]),
+        temp_max_c=cast(float | None, parsed["temp_max_c"]),
+        humidity_percent=cast(float | None, parsed["humidity_percent"]),
+        pressure_mmhg=cast(float | None, parsed["pressure_mmhg"]),
+        wind_speed_ms=cast(float | None, parsed["wind_speed_ms"]),
+        wind_deg=cast(float | None, parsed["wind_deg"]),
+        weather_id=cast(int | None, parsed["weather_id"]),
+        weather_main=cast(str | None, parsed["weather_main"]),
+        weather_description=cast(str | None, parsed["weather_description"]),
+        visibility_m=cast(float | None, parsed["visibility_m"]),
+        cloudiness_percent=cast(float | None, parsed["cloudiness_percent"]),
+        precipitation_mm=cast(float | None, parsed["precipitation_mm"]),
+        snow_1h_mm=cast(float | None, parsed["snow_1h_mm"]),
     )
     try:
         with db.session.begin_nested():
@@ -350,12 +386,23 @@ def _optional_str(value: Any) -> str | None:
     return text or None
 
 
-def clear_weather_records() -> tuple[str, str]:
-    """Delete all weather records. Returns (flash category, message)."""
+def clear_om_weather_records() -> tuple[str, str]:
+    """Delete all Open-Meteo weather records. Returns (flash category, message)."""
     count = OmWeatherRecord.query.count()
     if count == 0:
-        return ("info", "No weather records to delete.")
+        return ("info", "No Open-Meteo weather records to delete.")
 
     OmWeatherRecord.query.delete()
     db.session.commit()
-    return ("success", f"Deleted {count} weather record(s).")
+    return ("success", f"Deleted {count} Open-Meteo weather record(s).")
+
+
+def clear_owm_weather_records() -> tuple[str, str]:
+    """Delete all OpenWeatherMap weather records. Returns (flash category, message)."""
+    count = OwmWeatherRecord.query.count()
+    if count == 0:
+        return ("info", "No OpenWeatherMap weather records to delete.")
+
+    OwmWeatherRecord.query.delete()
+    db.session.commit()
+    return ("success", f"Deleted {count} OpenWeatherMap weather record(s).")

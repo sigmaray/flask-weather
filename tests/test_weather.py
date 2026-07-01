@@ -41,6 +41,7 @@ OPEN_METEO_RESPONSE = {
         "weather_code": 1,
         "precipitation": 0.0,
         "snow_depth": 0.12,
+        "cloud_cover": 42,
     },
     "daily": {
         "uv_index_max": [5.5],
@@ -62,6 +63,8 @@ OWM_RESPONSE = {
     "wind": {"speed": 2.5, "deg": 180},
     "clouds": {"all": 10},
     "visibility": 10000,
+    "rain": {"1h": 0.3},
+    "snow": {"1h": 1.2},
 }
 
 
@@ -106,6 +109,7 @@ def test_fetch_weather_open_meteo_only(app, paris_city, mock_geocoding) -> None:
         assert open_meteo_record is not None
         assert owm_record is None
         assert open_meteo_record.temperature_c == 15.5
+        assert open_meteo_record.cloudiness_percent == 42
         assert OmWeatherRecord.query.count() == 1
         assert OwmWeatherRecord.query.count() == 0
 
@@ -131,6 +135,8 @@ def test_fetch_weather_openweathermap_only(app, paris_city, mock_geocoding) -> N
         assert owm_record is not None
         assert owm_record.temperature_c == 18.2
         assert owm_record.weather_main == "Clear"
+        assert owm_record.precipitation_mm == 0.3
+        assert owm_record.snow_1h_mm == 1.2
         assert OmWeatherRecord.query.count() == 0
         assert OwmWeatherRecord.query.count() == 1
 

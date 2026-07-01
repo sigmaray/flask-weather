@@ -1,5 +1,23 @@
 {% extends 'admin/model/details.html' %}
 
+{% macro weather_history_headers() %}
+<thead>
+    <tr>
+        <th>Time (UTC)</th>
+        <th>Time (local)</th>
+        <th>Weather</th>
+        <th>Temp °C</th>
+        <th>Humidity %</th>
+        <th>Pressure mmHg</th>
+        <th>Wind m/s</th>
+        <th>Feels like °C</th>
+        <th>Cloudiness %</th>
+        <th>Precip mm</th>
+        <th>Snow cm</th>
+    </tr>
+</thead>
+{% endmacro %}
+
 {% block head %}
 {{ super() }}
 <style>
@@ -56,37 +74,25 @@
         <h2 class="mt-2">History</h2>
         <div class="table-responsive">
         <table class="table table-sm table-striped weather-history-table">
-            <thead>
-                <tr>
-                    <th>Time (UTC)</th>
-                    <th>Weather</th>
-                    <th>Temp °C</th>
-                    <th>Feels like °C</th>
-                    <th>Humidity %</th>
-                    <th>Pressure mmHg</th>
-                    <th>Wind m/s</th>
-                    <th>Wind °</th>
-                    <th>Cloudiness %</th>
-                    <th>Visibility m</th>
-                </tr>
-            </thead>
+            {{ weather_history_headers() }}
             <tbody>
                 {% for record in owm_records %}
                 <tr class="weather-history-row" data-href="{{ url_for('owm_weather_records.details_view', id=record.id) }}" role="link" tabindex="0" title="View weather record">
                     <td>
                         <a href="{{ url_for('owm_weather_records.details_view', id=record.id) }}" class="text-body">
-                            {{ record.display_time.strftime('%Y-%m-%d %H:%M') }}
+                            {{ record.observed_at_utc.strftime('%Y-%m-%d %H:%M') }}
                         </a>
                     </td>
+                    <td>{{ record.observed_at_local.strftime('%Y-%m-%d %H:%M') if record.observed_at_local else '—' }}</td>
                     <td>{{ record.weather_description or record.weather_main or '—' }}</td>
                     <td>{{ "%.1f"|format(record.temperature_c) }}</td>
-                    <td>{{ "%.1f"|format(record.feels_like_c) if record.feels_like_c is not none else '—' }}</td>
                     <td>{{ "%.0f"|format(record.humidity_percent) if record.humidity_percent is not none else '—' }}</td>
                     <td>{{ "%.0f"|format(record.pressure_mmhg) if record.pressure_mmhg is not none else '—' }}</td>
                     <td>{{ "%.1f"|format(record.wind_speed_ms) if record.wind_speed_ms is not none else '—' }}</td>
-                    <td>{{ "%.0f"|format(record.wind_deg) if record.wind_deg is not none else '—' }}</td>
+                    <td>{{ "%.1f"|format(record.feels_like_c) if record.feels_like_c is not none else '—' }}</td>
                     <td>{{ "%.0f"|format(record.cloudiness_percent) if record.cloudiness_percent is not none else '—' }}</td>
-                    <td>{{ "%.0f"|format(record.visibility_m) if record.visibility_m is not none else '—' }}</td>
+                    <td>{{ "%.1f"|format(record.precipitation_mm) if record.precipitation_mm is not none else '—' }}</td>
+                    <td>{{ "%.0f"|format(record.snow_depth_cm) if record.snow_depth_cm is not none else '—' }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -118,42 +124,34 @@
         <h2 class="mt-2">History</h2>
         <div class="table-responsive">
         <table class="table table-sm table-striped weather-history-table">
-            <thead>
-                <tr>
-                    <th>Time (local)</th>
-                    <th>Weather</th>
-                    <th>Temp °C</th>
-                    <th>Dew °C</th>
-                    <th>Humidity %</th>
-                    <th>Pressure mmHg</th>
-                    <th>Wind m/s</th>
-                    <th>Feels like °C</th>
-                    <th>UV index</th>
-                    <th>Precip mm</th>
-                    <th>Snow cm</th>
-                </tr>
-            </thead>
+            {{ weather_history_headers() }}
             <tbody>
                 {% for record in om_records %}
                 <tr class="weather-history-row" data-href="{{ url_for('weather_records.details_view', id=record.id) }}" role="link" tabindex="0" title="View weather record">
                     <td>
                         <a href="{{ url_for('weather_records.details_view', id=record.id) }}" class="text-body">
-                            {{ record.display_time.strftime('%Y-%m-%d %H:%M') }}
-                            {% if record.timezone %}
-                            <span class="text-muted">{{ record.timezone }}</span>
-                            {% endif %}
+                            {{ record.observed_at_utc.strftime('%Y-%m-%d %H:%M') }}
                         </a>
+                    </td>
+                    <td>
+                        {% if record.observed_at_local %}
+                        {{ record.observed_at_local.strftime('%Y-%m-%d %H:%M') }}
+                        {% if record.timezone %}
+                        <span class="text-muted">{{ record.timezone }}</span>
+                        {% endif %}
+                        {% else %}
+                        —
+                        {% endif %}
                     </td>
                     <td>{{ record.weather_code | weather_code_label }}</td>
                     <td>{{ "%.1f"|format(record.temperature_c) }}</td>
-                    <td>{{ "%.1f"|format(record.dew_point_c) if record.dew_point_c is not none else '—' }}</td>
                     <td>{{ "%.0f"|format(record.humidity_percent) if record.humidity_percent is not none else '—' }}</td>
                     <td>{{ "%.0f"|format(record.pressure_mmhg) if record.pressure_mmhg is not none else '—' }}</td>
                     <td>{{ "%.1f"|format(record.wind_speed_ms) if record.wind_speed_ms is not none else '—' }}</td>
-                    <td>{{ "%.1f"|format(record.apparent_temperature_c) if record.apparent_temperature_c is not none else '—' }}</td>
-                    <td>{{ "%.1f"|format(record.uv_index) if record.uv_index is not none else '—' }}</td>
+                    <td>{{ "%.1f"|format(record.feels_like_c) if record.feels_like_c is not none else '—' }}</td>
+                    <td>{{ "%.0f"|format(record.cloudiness_percent) if record.cloudiness_percent is not none else '—' }}</td>
                     <td>{{ "%.1f"|format(record.precipitation_mm) if record.precipitation_mm is not none else '—' }}</td>
-                    <td>{{ "%.0f"|format(record.snow_depth_m * 100) if record.snow_depth_m is not none else '—' }}</td>
+                    <td>{{ "%.0f"|format(record.snow_depth_cm) if record.snow_depth_cm is not none else '—' }}</td>
                 </tr>
                 {% endfor %}
             </tbody>

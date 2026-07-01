@@ -2,7 +2,7 @@
 
 {% block body %}
 <div class="row">
-    <div class="col-md-8 col-lg-6">
+    <div class="col-12">
         <div class="card mb-4">
             <div class="card-header">Weather fetch</div>
             <div class="card-body">
@@ -11,7 +11,8 @@
                 </p>
                 <p class="text-muted mb-4">
                     Cities in database: <strong>{{ cities_count }}</strong>.
-                    Weather records: <strong>{{ weather_records_count }}</strong>.
+                    Open-Meteo records: <strong>{{ om_weather_records_count }}</strong>.
+                    OpenWeatherMap records: <strong>{{ owm_weather_records_count }}</strong>.
                 </p>
 
                 <form method="post" action="{{ url_for('.fetch_weather') }}" class="d-inline">
@@ -20,15 +21,25 @@
                     </button>
                 </form>
 
-                <form method="post" action="{{ url_for('.clear_weather') }}" class="d-inline"
-                      onsubmit="return confirm('Delete all weather records from the database?');">
+                <form method="post" action="{{ url_for('.clear_om_weather') }}" class="d-inline"
+                      onsubmit="return confirm('Delete all Open-Meteo weather records from the database?');">
+                    <button type="submit" class="btn btn-danger mr-2">
+                        Clear Open-Meteo
+                    </button>
+                </form>
+
+                <form method="post" action="{{ url_for('.clear_owm_weather') }}" class="d-inline"
+                      onsubmit="return confirm('Delete all OpenWeatherMap weather records from the database?');">
                     <button type="submit" class="btn btn-danger">
-                        Clear weather
+                        Clear OpenWeatherMap
                     </button>
                 </form>
             </div>
             <div class="card-footer text-muted small">
-                Equivalent to the CLI command <code>flask fetch-weather</code>.
+                Equivalent to the CLI commands
+                <code>flask fetch-weather</code>,
+                <code>flask om-weather-clear -y</code>, and
+                <code>flask owm-weather-clear -y</code>.
             </div>
         </div>
 

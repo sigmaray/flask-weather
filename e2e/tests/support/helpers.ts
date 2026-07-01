@@ -46,12 +46,22 @@ export async function readCitiesCount(page: Page): Promise<string> {
   return value?.trim() ?? "0";
 }
 
-export async function readWeatherRecordsCount(page: Page): Promise<string> {
+export async function readOmWeatherRecordsCount(page: Page): Promise<string> {
   const value = await page
-    .locator('p:has-text("Weather records:") strong')
-    .last()
+    .locator('p:has-text("Open-Meteo records:") strong')
     .textContent();
   return value?.trim() ?? "0";
+}
+
+export async function readOwmWeatherRecordsCount(page: Page): Promise<string> {
+  const value = await page
+    .locator('p:has-text("OpenWeatherMap records:") strong')
+    .textContent();
+  return value?.trim() ?? "0";
+}
+
+export async function readWeatherRecordsCount(page: Page): Promise<string> {
+  return readOmWeatherRecordsCount(page);
 }
 
 export async function ensureTestCitiesSeeded(page: Page): Promise<void> {
@@ -67,8 +77,11 @@ export async function clearAllCities(page: Page): Promise<void> {
 
   if ((await readWeatherRecordsCount(page)) !== "0") {
     acceptNextConfirm(page);
-    await page.getByRole("button", { name: "Clear weather" }).click();
-    await expectFlash(page, /Deleted \d+ weather record\(s\)\.|No weather records to delete\./);
+    await page.getByRole("button", { name: "Clear Open-Meteo" }).click();
+    await expectFlash(
+      page,
+      /Deleted \d+ Open-Meteo weather record\(s\)\.|No Open-Meteo weather records to delete\./,
+    );
     await page.goto("/admin/tools/");
   }
 

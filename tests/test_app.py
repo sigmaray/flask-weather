@@ -383,7 +383,7 @@ def test_clear_cities_tools(auth_client: FlaskClient) -> None:
         assert City.query.count() == 0
 
 
-def test_clear_weather_tools(auth_client: FlaskClient) -> None:
+def test_clear_om_weather_tools(auth_client: FlaskClient) -> None:
     with auth_client.application.app_context():
         city = City(name="Berlin", country="Germany")
         db.session.add(city)
@@ -398,10 +398,35 @@ def test_clear_weather_tools(auth_client: FlaskClient) -> None:
         db.session.commit()
         assert OmWeatherRecord.query.count() == 1
 
-    response = auth_client.post("/admin/tools/clear-weather/", follow_redirects=True)
-    assert b"Deleted 1 weather record(s)." in response.data
+    response = auth_client.post("/admin/tools/clear-om-weather/", follow_redirects=True)
+    assert b"Deleted 1 Open-Meteo weather record(s)." in response.data
     with auth_client.application.app_context():
         assert OmWeatherRecord.query.count() == 0
+        assert City.query.count() == 1
+
+
+def test_clear_owm_weather_tools(auth_client: FlaskClient) -> None:
+    from app.models import OwmWeatherRecord
+
+    with auth_client.application.app_context():
+        city = City(name="Berlin", country="Germany")
+        db.session.add(city)
+        db.session.commit()
+        db.session.add(
+            OwmWeatherRecord(
+                city_id=city.id,
+                recorded_at=datetime(2026, 1, 1, 12, 0),
+                observed_at=datetime(2026, 1, 1, 12, 0),
+                temperature_c=10.0,
+            )
+        )
+        db.session.commit()
+        assert OwmWeatherRecord.query.count() == 1
+
+    response = auth_client.post("/admin/tools/clear-owm-weather/", follow_redirects=True)
+    assert b"Deleted 1 OpenWeatherMap weather record(s)." in response.data
+    with auth_client.application.app_context():
+        assert OwmWeatherRecord.query.count() == 0
         assert City.query.count() == 1
 
 

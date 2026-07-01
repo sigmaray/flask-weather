@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime, timedelta
 from typing import cast
+from zoneinfo import ZoneInfo
 
 from flask_login import UserMixin
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -132,12 +133,34 @@ class OmWeatherRecord(db.Model):  # type: ignore[name-defined,misc]
     uv_index = db.Column(db.Float, nullable=True)
     precipitation_mm = db.Column(db.Float, nullable=True)
     snow_depth_m = db.Column(db.Float, nullable=True)
+    cloudiness_percent = db.Column(db.Float, nullable=True)
 
     city = db.relationship("City", back_populates="weather_records")
 
     @property
     def display_time(self) -> datetime:
         return cast(datetime, self.observed_at_local or self.recorded_at)
+
+    @property
+    def observed_at_utc(self) -> datetime:
+        if self.observed_at_local is not None and self.timezone:
+            try:
+                local_tz = ZoneInfo(self.timezone)
+                local_aware = self.observed_at_local.replace(tzinfo=local_tz)
+                return local_aware.astimezone(UTC).replace(tzinfo=None)
+            except (KeyError, ValueError):
+                pass
+        return self.recorded_at
+
+    @property
+    def feels_like_c(self) -> float | None:
+        return self.apparent_temperature_c
+
+    @property
+    def snow_depth_cm(self) -> float | None:
+        if self.snow_depth_m is None:
+            return None
+        return self.snow_depth_m * 100
 
     def __repr__(self) -> str:
         return f"<OmWeatherRecord city_id={self.city_id} at {self.recorded_at}>"
@@ -171,12 +194,28 @@ class OwmWeatherRecord(db.Model):  # type: ignore[name-defined,misc]
     weather_description = db.Column(db.String(120), nullable=True)
     visibility_m = db.Column(db.Float, nullable=True)
     cloudiness_percent = db.Column(db.Float, nullable=True)
+    precipitation_mm = db.Column(db.Float, nullable=True)
+    snow_1h_mm = db.Column(db.Float, nullable=True)
 
     city = db.relationship("City", back_populates="owm_weather_records")
 
     @property
     def display_time(self) -> datetime:
         return self.observed_at
+
+    @property
+    def observed_at_utc(self) -> datetime:
+        return self.observed_at
+
+    @property
+    def observed_at_local(self) -> datetime | None:
+        if self.timezone_offset_sec is None:
+            return None
+        return self.observed_at + timedelta(seconds=self.timezone_offset_sec)
+
+    @property
+    def snow_depth_cm(self) -> float | None:
+        return self.snow_1h_mm
 
     def __repr__(self) -> str:
         return f"<OwmWeatherRecord city_id={self.city_id} at {self.recorded_at}>"

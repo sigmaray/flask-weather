@@ -295,6 +295,7 @@ class OmWeatherRecordAdmin(SecureModelView):
         "uv_index",
         "precipitation_mm",
         "snow_depth_m",
+        "cloudiness_percent",
     ]
     column_filters = ["city_id", "recorded_at"]
     column_sortable_list = ["id", "recorded_at", "temperature_c"]
@@ -322,6 +323,7 @@ class OmWeatherRecordAdmin(SecureModelView):
         "uv_index": "UV index (daily max)",
         "precipitation_mm": "Precipitation (mm)",
         "snow_depth_m": "Snow depth (m)",
+        "cloudiness_percent": "Cloudiness (%)",
     }
 
     can_create = False
@@ -347,6 +349,8 @@ class OwmWeatherRecordAdmin(SecureModelView):
         "weather_description",
         "visibility_m",
         "cloudiness_percent",
+        "precipitation_mm",
+        "snow_1h_mm",
     ]
     column_filters = ["city_id", "recorded_at"]
     column_sortable_list = ["id", "recorded_at", "temperature_c"]
@@ -377,6 +381,8 @@ class OwmWeatherRecordAdmin(SecureModelView):
         "weather_description": "Description",
         "visibility_m": "Visibility (m)",
         "cloudiness_percent": "Cloudiness (%)",
+        "precipitation_mm": "Precipitation (mm)",
+        "snow_1h_mm": "Snow (1h, mm)",
     }
 
     can_create = False
@@ -455,12 +461,13 @@ class AppSettingsAdmin(SecureModelView):
 class ToolsAdmin(SecureBaseView):
     @expose("/")
     def index(self) -> Any:
-        from app.models import City, OmWeatherRecord, User
+        from app.models import City, OmWeatherRecord, OwmWeatherRecord, User
 
         return self.render(
             "admin/tools.html",
             cities_count=City.query.count(),
-            weather_records_count=OmWeatherRecord.query.count(),
+            om_weather_records_count=OmWeatherRecord.query.count(),
+            owm_weather_records_count=OwmWeatherRecord.query.count(),
             users_count=User.query.count(),
         )
 
@@ -488,11 +495,19 @@ class ToolsAdmin(SecureBaseView):
         flash(message, category)
         return redirect(url_for(".index"))
 
-    @expose("/clear-weather/", methods=["POST"])
-    def clear_weather(self) -> Response:
-        from app.services.weather import clear_weather_records
+    @expose("/clear-om-weather/", methods=["POST"])
+    def clear_om_weather(self) -> Response:
+        from app.services.weather import clear_om_weather_records
 
-        category, message = clear_weather_records()
+        category, message = clear_om_weather_records()
+        flash(message, category)
+        return redirect(url_for(".index"))
+
+    @expose("/clear-owm-weather/", methods=["POST"])
+    def clear_owm_weather(self) -> Response:
+        from app.services.weather import clear_owm_weather_records
+
+        category, message = clear_owm_weather_records()
         flash(message, category)
         return redirect(url_for(".index"))
 

@@ -35,8 +35,11 @@ test.describe.serial("Tools", () => {
   test("clears all cities after confirmation", async ({ page }) => {
     if ((await readWeatherRecordsCount(page)) !== "0") {
       acceptNextConfirm(page);
-      await page.getByRole("button", { name: "Clear weather" }).click();
-      await expectFlash(page, /Deleted \d+ weather record\(s\)\.|No weather records to delete\./);
+      await page.getByRole("button", { name: "Clear Open-Meteo" }).click();
+      await expectFlash(
+        page,
+        /Deleted \d+ Open-Meteo weather record\(s\)\.|No Open-Meteo weather records to delete\./,
+      );
     }
 
     acceptNextConfirm(page);
@@ -58,8 +61,8 @@ test.describe.serial("Tools", () => {
     }
 
     acceptNextConfirm(page);
-    await page.getByRole("button", { name: "Clear weather" }).click();
-    await expectFlash(page, /Deleted \d+ weather record\(s\)\./);
+    await page.getByRole("button", { name: "Clear Open-Meteo" }).click();
+    await expectFlash(page, /Deleted \d+ Open-Meteo weather record\(s\)\./);
     await expect(readWeatherRecordsCount(page)).resolves.toBe("0");
   });
 });

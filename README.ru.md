@@ -194,9 +194,11 @@ flask cities-show     # список городов с координатами 
 ### Погода
 
 ```bash
-flask fetch-weather   # запросить погоду для всех городов, для которых наступило время
-flask run-worker      # отдельный процесс: опрос каждые 60 с (Docker worker)
-flask run-worker --once  # один цикл опроса и выход
+flask fetch-weather        # запросить погоду для всех городов, для которых наступило время
+flask om-weather-clear     # удалить все записи Open-Meteo (-y без подтверждения)
+flask owm-weather-clear    # удалить все записи OpenWeatherMap (-y без подтверждения)
+flask run-worker           # отдельный процесс: опрос каждые 60 с (Docker worker)
+flask run-worker --once    # один цикл опроса и выход
 ```
 
 ## Разработка

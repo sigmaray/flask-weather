@@ -194,9 +194,11 @@ flask cities-show     # list cities with coordinates and intervals
 ### Weather
 
 ```bash
-flask fetch-weather   # fetch for all cities that are currently due
-flask run-worker      # dedicated process: fetch due cities every 60s (Docker worker)
-flask run-worker --once  # single fetch cycle, then exit
+flask fetch-weather        # fetch for all cities that are currently due
+flask om-weather-clear     # delete all Open-Meteo records (-y to skip confirmation)
+flask owm-weather-clear    # delete all OpenWeatherMap records (-y to skip confirmation)
+flask run-worker           # dedicated process: fetch due cities every 60s (Docker worker)
+flask run-worker --once    # single fetch cycle, then exit
 ```
 
 ## Development

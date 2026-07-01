@@ -8,7 +8,7 @@ import click
 from flask import Flask
 
 from app.extensions import db
-from app.models import City, User
+from app.models import City, OmWeatherRecord, OwmWeatherRecord, User
 from app.services.city_service import seed_test_cities
 from app.services.user_service import clear_users_table, seed_admin_user
 
@@ -199,3 +199,41 @@ def register_cli(app: Flask) -> None:
                 time.sleep(1)
 
         click.echo("Weather worker stopped.")
+
+    @app.cli.command("om-weather-clear")
+    @click.option("--yes", "-y", is_flag=True, help="Skip confirmation.")
+    def om_weather_clear(yes: bool) -> None:
+        """Delete all Open-Meteo weather records."""
+        from app.services.weather import clear_om_weather_records
+
+        count = OmWeatherRecord.query.count()
+        if count == 0:
+            click.echo("No Open-Meteo weather records to delete.")
+            return
+
+        if not yes and not click.confirm(f"Delete all {count} Open-Meteo weather record(s)?"):
+            click.echo("Aborted.")
+            raise SystemExit(1)
+
+        _, message = clear_om_weather_records()
+        click.echo(message)
+
+    @app.cli.command("owm-weather-clear")
+    @click.option("--yes", "-y", is_flag=True, help="Skip confirmation.")
+    def owm_weather_clear(yes: bool) -> None:
+        """Delete all OpenWeatherMap weather records."""
+        from app.services.weather import clear_owm_weather_records
+
+        count = OwmWeatherRecord.query.count()
+        if count == 0:
+            click.echo("No OpenWeatherMap weather records to delete.")
+            return
+
+        if not yes and not click.confirm(
+            f"Delete all {count} OpenWeatherMap weather record(s)?"
+        ):
+            click.echo("Aborted.")
+            raise SystemExit(1)
+
+        _, message = clear_owm_weather_records()
+        click.echo(message)
