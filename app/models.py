@@ -95,6 +95,13 @@ class City(db.Model):  # type: ignore[name-defined,misc]
 
 class WeatherRecord(db.Model):  # type: ignore[name-defined,misc]
     __tablename__ = "weather_records"
+    __table_args__ = (
+        db.UniqueConstraint(
+            "city_id",
+            "observed_at_local",
+            name="uq_weather_records_city_observed_at",
+        ),
+    )
 
     id = db.Column(db.Integer, primary_key=True)
     city_id = db.Column(db.Integer, db.ForeignKey("cities.id"), nullable=False, index=True)

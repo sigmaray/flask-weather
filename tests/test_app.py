@@ -271,6 +271,28 @@ def test_fetch_weather_tools_by_name_country(
         assert len(records) == 1
 
 
+def test_fetch_weather_skips_duplicate_observed_at(
+    auth_client: FlaskClient, mock_weather_api: None
+) -> None:
+    with auth_client.application.app_context():
+        city = City(
+            latitude=48.85,
+            longitude=2.35,
+            geocoded_name="Paris, France",
+        )
+        db.session.add(city)
+        db.session.commit()
+        city_id = city.id
+
+    auth_client.post("/admin/tools/fetch-weather/", follow_redirects=True)
+    auth_client.post("/admin/tools/fetch-weather/", follow_redirects=True)
+
+    with auth_client.application.app_context():
+        records = WeatherRecord.query.filter_by(city_id=city_id).all()
+        assert len(records) == 1
+        assert records[0].observed_at_local == datetime(2026, 6, 27, 14, 30)
+
+
 def test_weather_map_page(auth_client: FlaskClient, mock_geocoding: None) -> None:
     with auth_client.application.app_context():
         city = City(name="Paris", country="France")

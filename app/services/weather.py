@@ -4,6 +4,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 import requests
+from sqlalchemy.exc import IntegrityError
 
 from app.extensions import db
 from app.memory_log import log_app_error, weather_api_get
@@ -115,10 +116,22 @@ def fetch_weather_for_city(city: City) -> WeatherRecord:
         raise WeatherFetchError("No current weather data in response")
 
     recorded_at = datetime.now(UTC).replace(tzinfo=None)
+    observed_at_local = _parse_local_observation_time(current)
+
+    if observed_at_local is not None:
+        existing = WeatherRecord.query.filter_by(
+            city_id=city.id,
+            observed_at_local=observed_at_local,
+        ).first()
+        if existing is not None:
+            city.last_checked_at = recorded_at
+            db.session.commit()
+            return existing
+
     record = WeatherRecord(
         city_id=city.id,
         recorded_at=recorded_at,
-        observed_at_local=_parse_local_observation_time(current),
+        observed_at_local=observed_at_local,
         timezone=_optional_str(data.get("timezone")),
         temperature_c=float(current["temperature_2m"]),
         dew_point_c=_optional_float(current.get("dew_point_2m")),
@@ -133,7 +146,19 @@ def fetch_weather_for_city(city: City) -> WeatherRecord:
     )
     city.last_checked_at = recorded_at
     db.session.add(record)
-    db.session.commit()
+    try:
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        if observed_at_local is None:
+            raise
+        existing = WeatherRecord.query.filter_by(
+            city_id=city.id,
+            observed_at_local=observed_at_local,
+        ).one()
+        city.last_checked_at = recorded_at
+        db.session.commit()
+        return existing
     return record
 
 
