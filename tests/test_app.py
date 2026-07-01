@@ -379,3 +379,23 @@ def test_clear_weather_tools(auth_client: FlaskClient) -> None:
     with auth_client.application.app_context():
         assert WeatherRecord.query.count() == 0
         assert City.query.count() == 1
+
+
+def test_app_settings_admin_ensures_singleton(auth_client: FlaskClient) -> None:
+    with auth_client.application.app_context():
+        from app.models import AppSettings
+
+        db.session.query(AppSettings).delete()
+        db.session.commit()
+        assert AppSettings.query.count() == 0
+
+    response = auth_client.get("/admin/app_settings/")
+    assert response.status_code == 200
+    assert b"Default check interval" in response.data
+
+    with auth_client.application.app_context():
+        from app.models import AppSettings
+
+        settings = db.session.get(AppSettings, 1)
+        assert settings is not None
+        assert settings.default_check_interval_minutes == 1

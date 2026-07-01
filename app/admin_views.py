@@ -333,6 +333,10 @@ class AppSettingsAdmin(SecureModelView):
     can_view_details = True
     page_size = 25
 
+    def get_query(self) -> Any:
+        AppSettings.get_singleton()
+        return super().get_query()
+
 
 class ToolsAdmin(SecureBaseView):
     @expose("/")
