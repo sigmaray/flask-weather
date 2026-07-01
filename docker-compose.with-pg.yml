@@ -23,5 +23,15 @@ services:
       db:
         condition: service_healthy
 
+  worker:
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/weather
+      SECRET_KEY: dev-secret-change-in-production
+    depends_on:
+      db:
+        condition: service_healthy
+      web:
+        condition: service_healthy
+
 volumes:
   postgres_data:

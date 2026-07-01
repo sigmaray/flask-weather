@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import signal
+import time
 from datetime import datetime
 
 import click
@@ -150,3 +152,50 @@ def register_cli(app: Flask) -> None:
 
         records = fetch_due_cities()
         click.echo(f"Fetched weather for {len(records)} cities.")
+
+    @app.cli.command("run-worker")
+    @click.option(
+        "--interval",
+        default=60,
+        show_default=True,
+        help="Seconds between fetch cycles.",
+    )
+    @click.option(
+        "--once",
+        is_flag=True,
+        help="Run a single fetch cycle and exit.",
+    )
+    def run_worker(interval: int, once: bool) -> None:
+        """Run periodic weather fetching in a dedicated process."""
+        from app.services.weather import fetch_due_cities
+
+        if interval < 1:
+            click.echo("Interval must be at least 1 second.")
+            raise SystemExit(1)
+
+        running = True
+
+        def stop(_signum: int, _frame: object) -> None:
+            nonlocal running
+            running = False
+
+        signal.signal(signal.SIGTERM, stop)
+        signal.signal(signal.SIGINT, stop)
+
+        if once:
+            records = fetch_due_cities()
+            click.echo(f"Fetched weather for {len(records)} cities.")
+            return
+
+        click.echo(f"Weather worker started (interval={interval}s).")
+
+        while running:
+            records = fetch_due_cities()
+            click.echo(f"Fetched weather for {len(records)} cities.")
+
+            for _ in range(interval):
+                if not running:
+                    break
+                time.sleep(1)
+
+        click.echo("Weather worker stopped.")

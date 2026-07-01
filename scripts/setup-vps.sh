@@ -371,6 +371,7 @@ compose_stack_running() {
   services="$(cd "${DEPLOY_DIR}" && docker compose ps --status running --format '{{.Service}}' 2>/dev/null)" \
     || return 1
   grep -qx 'web' <<<"${services}" || return 1
+  grep -qx 'worker' <<<"${services}" || return 1
 }
 
 app_is_ready() {

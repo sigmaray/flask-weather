@@ -8,11 +8,11 @@ test.describe.serial("Scheduler (Background Tasks)", () => {
     await page.getByRole("link", { name: "Background Tasks", exact: true }).click();
   });
 
-  test("can pause and resume jobs", async ({ page }) => {
+    test("can pause and resume jobs", async ({ page }) => {
     // If the scheduler is disabled entirely, just verify the message
-    const warning = page.locator(".alert-warning");
-    if (await warning.isVisible()) {
-      await expect(warning).toHaveText("Scheduler is disabled.");
+    const disabled = page.locator(".alert-info");
+    if (await disabled.isVisible()) {
+      await expect(disabled).toContainText("In-process scheduler is disabled");
       return;
     }
 
@@ -50,9 +50,9 @@ test.describe.serial("Scheduler (Background Tasks)", () => {
 
   test("can cancel a job", async ({ page }) => {
     // If the scheduler is disabled entirely, just verify the message
-    const warning = page.locator(".alert-warning");
-    if (await warning.isVisible()) {
-      await expect(warning).toHaveText("Scheduler is disabled.");
+    const disabled = page.locator(".alert-info");
+    if (await disabled.isVisible()) {
+      await expect(disabled).toContainText("In-process scheduler is disabled");
       return;
     }
 

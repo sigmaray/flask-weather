@@ -41,11 +41,13 @@
 
 ## Быстрый старт (Docker)
 
-Самый быстрый способ запустить всё — базу данных и веб-приложение:
+Самый быстрый способ запустить всё — базу данных, веб-приложение и фоновый worker:
 
 ```bash
 docker compose up --build
 ```
+
+Стек поднимает два процесса приложения: **web** (HTTP и админка) и **worker** (периодический сбор погоды через `flask run-worker`). На web отключён встроенный планировщик (`SCHEDULER_ENABLED=false`), поэтому Gunicorn может использовать несколько workers без дублирования запросов.
 
 При первом запуске контейнер автоматически применяет миграции. Затем создайте пользователя (в другом терминале, пока стек работает):
 
@@ -98,7 +100,7 @@ cp .env.example .env
 |------------|----------------------|----------|
 | `DATABASE_URL` | `postgresql://postgres:postgres@localhost:5432/weather` | Строка подключения к PostgreSQL |
 | `SECRET_KEY` | `dev-secret-key` | Ключ подписи сессий Flask — **обязательно смените в production** |
-| `SCHEDULER_ENABLED` | `true` | Установите `false`, чтобы отключить фоновый сбор погоды |
+| `SCHEDULER_ENABLED` | `true` | Встроенный APScheduler для локальной разработки. В Docker на web стоит `false`, сбор погоды выполняет сервис `worker` |
 | `FLASK_DEBUG` | — | Установите `1` для режима отладки Flask (только локально) |
 | `FLASK_APP` | `wsgi:app` | Обязательна для команд Flask CLI |
 
@@ -118,13 +120,23 @@ flask cities-seed         # опционально: 10 тестовых горо
 flask run                 # http://localhost:5000
 ```
 
-Для локального запуска в production-подобном режиме:
+Для локального запуска в production-подобном режиме (один процесс со встроенным планировщиком):
 
 ```bash
 gunicorn --bind 0.0.0.0:5000 --workers 1 wsgi:app
 ```
 
-> **Gunicorn workers и планировщик.** При `SCHEDULER_ENABLED=true` (значение по умолчанию) каждый worker gunicorn поднимает свой экземпляр APScheduler внутри процесса. Если workers больше одного, фоновый сбор погоды дублируется — одни и те же города опрашиваются внешним API параллельно из нескольких процессов. Пока планировщик живёт в web-процессе, используйте `--workers 1`. Чтобы масштабировать HTTP, отключите планировщик на web (`SCHEDULER_ENABLED=false`) и вынесите сбор погоды отдельно (например, `flask fetch-weather` по cron или в отдельном контейнере).
+Чтобы повторить Docker-разделение локально, запустите worker во втором терминале:
+
+```bash
+export SCHEDULER_ENABLED=false
+gunicorn --bind 0.0.0.0:5000 --workers 2 wsgi:app
+
+# терминал 2
+flask run-worker
+```
+
+> **Фоновый сбор погоды.** Docker Compose выполняет опрос погоды в отдельном контейнере **worker** (`flask run-worker`). Для локальной разработки можно оставить встроенный APScheduler (`SCHEDULER_ENABLED=true`, по умолчанию) или отключить его на web и запустить `flask run-worker` в другом терминале — как в production.
 
 ## Панель администратора
 
@@ -153,7 +165,8 @@ gunicorn --bind 0.0.0.0:5000 --workers 1 wsgi:app
 
 ### Сбор погоды
 
-- Планировщик запускается каждую **1 минуту** и вызывает `fetch_due_cities()`.
+- **Docker / production:** сервис `worker` запускает `flask run-worker` каждые 60 секунд и вызывает `fetch_due_cities()`.
+- **Локальная разработка (по умолчанию):** встроенный APScheduler просыпается каждую **1 минуту** при `SCHEDULER_ENABLED=true`.
 - Город считается «просроченным», если `last_checked_at` старше его эффективного интервала.
 - **Fetch now** на странице города запрашивает погоду немедленно, вне расписания.
 - **Tools → Fetch weather** запрашивает погоду для всех просроченных городов сразу.
@@ -182,6 +195,8 @@ flask cities-show     # список городов с координатами 
 
 ```bash
 flask fetch-weather   # запросить погоду для всех городов, для которых наступило время
+flask run-worker      # отдельный процесс: опрос каждые 60 с (Docker worker)
+flask run-worker --once  # один цикл опроса и выход
 ```
 
 ## Разработка
@@ -240,7 +255,8 @@ e2e/                         # тесты Playwright (TypeScript)
 migrations/                  # миграции базы данных Alembic
 tests/                       # модульные тесты pytest
 wsgi.py                      # точка входа WSGI
-docker-compose.yml           # сервисы PostgreSQL и web
+docker-compose.yml           # сервисы web + worker (внешний PostgreSQL в сети infra)
+docker-compose.with-pg.yml   # опциональный overlay: PostgreSQL для локального Docker
 Dockerfile                   # production-образ (Gunicorn)
 ```
 

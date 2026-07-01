@@ -41,13 +41,15 @@ There is no public sign-up: users are created only via the CLI or admin tools.
 
 ## Quick start (Docker)
 
-The fastest way to run everything — database and web app:
+The fastest way to run everything — database, web app, and background worker:
 
 ```bash
 docker compose up --build
 ```
 
-On first start the container runs migrations automatically. Then create a user (in another terminal, with the stack running):
+The stack runs two application processes: **web** (HTTP + admin UI) and **worker** (periodic weather fetching via `flask run-worker`). The web service disables the in-process scheduler (`SCHEDULER_ENABLED=false`) so Gunicorn can use multiple workers without duplicating fetches.
+
+On first start the web container runs migrations automatically. Then create a user (in another terminal, with the stack running):
 
 ```bash
 docker compose exec web flask users-create
@@ -98,7 +100,7 @@ cp .env.example .env
 |----------|---------|-------------|
 | `DATABASE_URL` | `postgresql://postgres:postgres@localhost:5432/weather` | PostgreSQL connection string |
 | `SECRET_KEY` | `dev-secret-key` | Flask session signing key — **change in production** |
-| `SCHEDULER_ENABLED` | `true` | Set to `false` to disable background weather fetching |
+| `SCHEDULER_ENABLED` | `true` | In-process APScheduler for local dev. Docker sets `false` on web and uses the `worker` service instead |
 | `FLASK_DEBUG` | — | Set to `1` for Flask debug mode (local dev only) |
 | `FLASK_APP` | `wsgi:app` | Required for Flask CLI commands |
 
@@ -118,13 +120,23 @@ flask cities-seed         # optional: 10 test cities
 flask run                 # http://localhost:5000
 ```
 
-For production-like serving locally:
+For production-like serving locally (single process with in-process scheduler):
 
 ```bash
 gunicorn --bind 0.0.0.0:5000 --workers 1 wsgi:app
 ```
 
-> **Gunicorn workers and the scheduler.** With `SCHEDULER_ENABLED=true` (the default), each gunicorn worker starts its own in-process APScheduler instance. Running more than one worker duplicates background weather fetches against the external API. Use `--workers 1` while the scheduler runs inside the web process. To scale HTTP workers, set `SCHEDULER_ENABLED=false` on web and run weather fetching separately (for example `flask fetch-weather` on a cron or a dedicated container).
+To mirror the Docker split locally, run the worker in a second terminal:
+
+```bash
+export SCHEDULER_ENABLED=false
+gunicorn --bind 0.0.0.0:5000 --workers 2 wsgi:app
+
+# terminal 2
+flask run-worker
+```
+
+> **Background fetching.** Docker Compose runs weather polling in a separate **worker** container (`flask run-worker`). For local development you can keep the in-process APScheduler (`SCHEDULER_ENABLED=true`, default) or disable it on web and run `flask run-worker` in another terminal — the same split as production.
 
 ## Admin panel
 
@@ -153,7 +165,8 @@ Do not mix both in one record. An empty per-city interval uses the global defaul
 
 ### Weather fetching
 
-- The scheduler runs every **1 minute** and calls `fetch_due_cities()`.
+- **Docker / production:** the `worker` service runs `flask run-worker` every 60 seconds and calls `fetch_due_cities()`.
+- **Local dev (default):** in-process APScheduler wakes every **1 minute** when `SCHEDULER_ENABLED=true`.
 - A city is due when `last_checked_at` is older than its effective interval.
 - **Fetch now** on a city detail page fetches immediately, regardless of schedule.
 - **Tools → Fetch weather** fetches all due cities at once.
@@ -182,6 +195,8 @@ flask cities-show     # list cities with coordinates and intervals
 
 ```bash
 flask fetch-weather   # fetch for all cities that are currently due
+flask run-worker      # dedicated process: fetch due cities every 60s (Docker worker)
+flask run-worker --once  # single fetch cycle, then exit
 ```
 
 ## Development
@@ -240,7 +255,8 @@ e2e/                         # Playwright tests (TypeScript)
 migrations/                  # Alembic database migrations
 tests/                       # pytest unit tests
 wsgi.py                      # WSGI entry point
-docker-compose.yml           # PostgreSQL + web services
+docker-compose.yml           # web + worker services (external PostgreSQL on infra)
+docker-compose.with-pg.yml   # optional overlay: bundled PostgreSQL for local Docker
 Dockerfile                   # Production image (Gunicorn)
 ```
 

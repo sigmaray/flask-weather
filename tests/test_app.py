@@ -399,3 +399,16 @@ def test_app_settings_admin_ensures_singleton(auth_client: FlaskClient) -> None:
         settings = db.session.get(AppSettings, 1)
         assert settings is not None
         assert settings.default_check_interval_minutes == 1
+
+
+def test_run_worker_once(
+    runner, app, mock_weather_api: None, mock_geocoding: None
+) -> None:
+    with app.app_context():
+        city = City(name="Paris", country="France")
+        db.session.add(city)
+        db.session.commit()
+
+    result = runner.invoke(args=["run-worker", "--once"])
+    assert result.exit_code == 0
+    assert "Fetched weather for 1 cities." in result.output
