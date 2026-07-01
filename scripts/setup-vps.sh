@@ -146,6 +146,9 @@ ensure_deploy_env() {
   } > "${tmp}"
   mv "${tmp}" "${DEPLOY_ENV_FILE}"
   chmod 600 "${DEPLOY_ENV_FILE}"
+  if [[ -n "${SUDO_USER:-}" ]]; then
+    chown "${SUDO_USER}:${SUDO_USER}" "${DEPLOY_ENV_FILE}"
+  fi
   log "Wrote ${DEPLOY_ENV_FILE}"
 }
 
