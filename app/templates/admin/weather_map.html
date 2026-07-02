@@ -13,17 +13,39 @@
         height: 520px;
         border-radius: 0.25rem;
     }
-    .custom-temp-icon {
+    .weather-marker {
         background: white;
         border: 2px solid #007bff;
-        border-radius: 4px;
-        padding: 2px 6px;
-        font-weight: bold;
-        text-align: center;
+        border-radius: 6px;
+        padding: 3px 6px;
         box-shadow: 0 2px 5px rgba(0,0,0,0.3);
         white-space: nowrap;
-        font-size: 14px;
+        font-size: 12px;
         color: #333;
+        line-height: 1.3;
+    }
+    .weather-marker-row {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .weather-marker-row + .weather-marker-row {
+        margin-top: 2px;
+        padding-top: 2px;
+        border-top: 1px solid #dee2e6;
+    }
+    .weather-marker-emoji {
+        font-size: 14px;
+        line-height: 1;
+    }
+    .weather-marker-src {
+        font-size: 10px;
+        font-weight: 600;
+        color: #6c757d;
+        min-width: 28px;
+    }
+    .weather-marker-temp {
+        font-weight: bold;
     }
 </style>
 {% endblock %}
@@ -58,6 +80,51 @@
 ></script>
 <script>
 const mapPoints = {{ map_points | tojson }};
+
+function formatTemp(value) {
+    if (value === null || value === undefined) {
+        return "—";
+    }
+    return `${value.toFixed(1)}°`;
+}
+
+function buildMarkerRow(source, emoji, temp) {
+    return `
+        <div class="weather-marker-row">
+            <span class="weather-marker-emoji">${emoji}</span>
+            <span class="weather-marker-src">${source}</span>
+            <span class="weather-marker-temp">${formatTemp(temp)}</span>
+        </div>
+    `;
+}
+
+function buildMarkerHtml(point) {
+    const rows = [];
+    if (point.om_temperature_c !== null) {
+        rows.push(buildMarkerRow("OM", point.om_weather_emoji || "🌡️", point.om_temperature_c));
+    }
+    if (point.owm_temperature_c !== null) {
+        rows.push(buildMarkerRow("OWM", point.owm_weather_emoji || "🌡️", point.owm_temperature_c));
+    }
+    return rows.join("");
+}
+
+function buildPopupHtml(point) {
+    const lines = [`<strong>${point.city_name}</strong>`];
+    if (point.om_temperature_c !== null) {
+        lines.push(
+            `${point.om_weather_emoji || "🌡️"} Open-Meteo: ${formatTemp(point.om_temperature_c)} · ${point.om_weather_label}<br>${point.om_recorded_at}`
+        );
+    }
+    if (point.owm_temperature_c !== null) {
+        lines.push(
+            `${point.owm_weather_emoji || "🌡️"} OpenWeatherMap: ${formatTemp(point.owm_temperature_c)} · ${point.owm_weather_label}<br>${point.owm_recorded_at}`
+        );
+    }
+    lines.push(`<a href="${point.details_url}">Open details</a>`);
+    return lines.join("<br>");
+}
+
 const map = L.map("weatherMap").setView([20, 0], 2);
 
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -69,18 +136,13 @@ if (mapPoints.length > 0) {
     const bounds = [];
     mapPoints.forEach((point) => {
         const tempIcon = L.divIcon({
-            className: 'custom-temp-icon',
-            html: `${point.temperature_c.toFixed(1)} °C`,
+            className: "weather-marker",
+            html: buildMarkerHtml(point),
             iconSize: null,
-            iconAnchor: [25, 15]
+            iconAnchor: [40, 20],
         });
         const marker = L.marker([point.latitude, point.longitude], { icon: tempIcon }).addTo(map);
-        marker.bindPopup(`
-            <strong>${point.city_name}</strong><br>
-            ${point.temperature_c.toFixed(1)} °C · ${point.weather_label}<br>
-            ${point.recorded_at}<br>
-            <a href="${point.details_url}">Open details</a>
-        `);
+        marker.bindPopup(buildPopupHtml(point));
         bounds.push([point.latitude, point.longitude]);
     });
     map.fitBounds(bounds, { padding: [30, 30] });

@@ -16,7 +16,7 @@ from app.extensions import db
 from app.models import AppSettings, City, OwmWeatherRecord
 from app.services.geocoding import GeocodingError
 from app.services.weather import ensure_city_coordinates
-from app.services.weather_codes import weather_code_label
+from app.services.weather_codes import owm_weather_emoji, weather_code_emoji, weather_code_label
 
 
 def _build_open_meteo_chart_data(records: list[Any]) -> dict[str, Any]:
@@ -532,16 +532,24 @@ class WeatherMapAdmin(SecureBaseView):
     @expose("/")
     def index(self) -> Any:
         cities_with_weather = (
-            City.query.join(City.weather_records).distinct().order_by(City.id.asc()).all()
+            City.query.filter(
+                db.or_(
+                    City.weather_records.any(),
+                    City.owm_weather_records.any(),
+                )
+            )
+            .order_by(City.id.asc())
+            .all()
         )
 
         map_points: list[dict[str, Any]] = []
         records_without_coordinates = 0
         for city in cities_with_weather:
-            if not city.weather_records:
+            latest_om = city.weather_records[0] if city.weather_records else None
+            latest_owm = city.owm_weather_records[0] if city.owm_weather_records else None
+            if latest_om is None and latest_owm is None:
                 continue
 
-            latest = city.weather_records[0]
             try:
                 latitude, longitude = ensure_city_coordinates(city)
             except GeocodingError:
@@ -554,9 +562,28 @@ class WeatherMapAdmin(SecureBaseView):
                     "city_name": city.display_name,
                     "latitude": latitude,
                     "longitude": longitude,
-                    "temperature_c": latest.temperature_c,
-                    "weather_label": weather_code_label(latest.weather_code),
-                    "recorded_at": latest.display_time.strftime("%Y-%m-%d %H:%M"),
+                    "om_temperature_c": latest_om.temperature_c if latest_om else None,
+                    "om_weather_emoji": weather_code_emoji(latest_om.weather_code)
+                    if latest_om
+                    else None,
+                    "om_weather_label": weather_code_label(latest_om.weather_code)
+                    if latest_om
+                    else None,
+                    "om_recorded_at": latest_om.display_time.strftime("%Y-%m-%d %H:%M")
+                    if latest_om
+                    else None,
+                    "owm_temperature_c": latest_owm.temperature_c if latest_owm else None,
+                    "owm_weather_emoji": owm_weather_emoji(latest_owm.weather_id)
+                    if latest_owm
+                    else None,
+                    "owm_weather_label": (
+                        latest_owm.weather_description or latest_owm.weather_main
+                    )
+                    if latest_owm
+                    else None,
+                    "owm_recorded_at": latest_owm.display_time.strftime("%Y-%m-%d %H:%M")
+                    if latest_owm
+                    else None,
                     "details_url": url_for("admin_cities.details_view", id=city.id),
                 }
             )

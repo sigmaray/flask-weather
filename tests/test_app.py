@@ -319,6 +319,8 @@ def test_weather_map_page(auth_client: FlaskClient, mock_geocoding: None) -> Non
     assert b"weatherMap" in response.data
     assert b"Paris, France" in response.data
     assert b"Mainly clear" in response.data
+    assert b'"om_temperature_c": 22.4' in response.data
+    assert b'"om_weather_emoji"' in response.data
     assert b'"latitude": 48.8566' in response.data
 
     with auth_client.application.app_context():

@@ -12,7 +12,7 @@ from app.services.weather import (
     _pressure_hpa_to_mmhg,
     fetch_weather_for_city,
 )
-from app.services.weather_codes import weather_code_label
+from app.services.weather_codes import owm_weather_emoji, weather_code_emoji, weather_code_label
 
 
 def test_weather_code_label() -> None:
@@ -21,6 +21,22 @@ def test_weather_code_label() -> None:
     assert weather_code_label(63) == "Moderate rain"
     assert weather_code_label(None) == "—"
     assert weather_code_label(123) == "Code 123"
+
+
+def test_weather_code_emoji() -> None:
+    assert weather_code_emoji(0) == "☀️"
+    assert weather_code_emoji(61) == "🌧️"
+    assert weather_code_emoji(95) == "⛈️"
+    assert weather_code_emoji(None) == "🌡️"
+    assert weather_code_emoji(123) == "🌡️"
+
+
+def test_owm_weather_emoji() -> None:
+    assert owm_weather_emoji(800) == "☀️"
+    assert owm_weather_emoji(500) == "🌧️"
+    assert owm_weather_emoji(200) == "⛈️"
+    assert owm_weather_emoji(None) == "🌡️"
+    assert owm_weather_emoji(999) == "🌡️"
 
 
 def test_pressure_hpa_to_mmhg() -> None:

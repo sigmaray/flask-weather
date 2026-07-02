@@ -36,3 +36,65 @@ def weather_code_label(code: int | None) -> str:
     if code is None:
         return "—"
     return WMO_WEATHER_LABELS.get(code, f"Code {code}")
+
+
+WMO_WEATHER_EMOJI: dict[int, str] = {
+    0: "☀️",
+    1: "🌤️",
+    2: "⛅",
+    3: "☁️",
+    45: "🌫️",
+    48: "🌫️",
+    51: "🌦️",
+    53: "🌦️",
+    55: "🌧️",
+    56: "🌧️",
+    57: "🌧️",
+    61: "🌧️",
+    63: "🌧️",
+    65: "🌧️",
+    66: "🌧️",
+    67: "🌧️",
+    71: "🌨️",
+    73: "🌨️",
+    75: "❄️",
+    77: "❄️",
+    80: "🌦️",
+    81: "🌧️",
+    82: "🌧️",
+    85: "🌨️",
+    86: "❄️",
+    95: "⛈️",
+    96: "⛈️",
+    99: "⛈️",
+}
+
+
+def weather_code_emoji(code: int | None) -> str:
+    if code is None:
+        return "🌡️"
+    return WMO_WEATHER_EMOJI.get(code, "🌡️")
+
+
+def owm_weather_emoji(weather_id: int | None) -> str:
+    if weather_id is None:
+        return "🌡️"
+    if 200 <= weather_id <= 232:
+        return "⛈️"
+    if 300 <= weather_id <= 321:
+        return "🌦️"
+    if 500 <= weather_id <= 531:
+        return "🌧️"
+    if 600 <= weather_id <= 622:
+        return "❄️"
+    if 701 <= weather_id <= 781:
+        return "🌫️"
+    if weather_id == 800:
+        return "☀️"
+    if weather_id == 801:
+        return "🌤️"
+    if weather_id == 802:
+        return "⛅"
+    if weather_id in (803, 804):
+        return "☁️"
+    return "🌡️"
